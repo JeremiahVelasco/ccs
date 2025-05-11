@@ -25,7 +25,9 @@ class UserResource extends Resource
 
     protected static ?string $navigationGroup = 'User Management';
 
-    protected static ?string $navigationLabel = 'All Users';
+    protected static ?string $label = 'Faculty';
+
+    protected static ?int $navigationSort = 1;
 
     public static function form(Form $form): Form
     {
@@ -41,6 +43,7 @@ class UserResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->query(User::faculty())
             ->columns([
                 TextColumn::make('name')
                     ->searchable(),
@@ -80,5 +83,10 @@ class UserResource extends Resource
             'create' => Pages\CreateUser::route('/create'),
             'edit' => Pages\EditUser::route('/{record}/edit'),
         ];
+    }
+
+    public static function getPluralLabel(): ?string
+    {
+        return 'Faculty';
     }
 }

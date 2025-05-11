@@ -91,7 +91,7 @@ class User extends Authenticatable implements FilamentUser, HasAvatar
 
     public function specialAccess()
     {
-        return $this->hasRole(['super_admin', 'faculty', 'director']);
+        return $this->hasRole(['super_admin', 'faculty']);
     }
 
     public function isStudent()
@@ -118,6 +118,20 @@ class User extends Authenticatable implements FilamentUser, HasAvatar
     {
         return $query->whereHas('roles', function ($query) {
             $query->where('name', 'student');
+        });
+    }
+
+    public static function scopeFaculty($query)
+    {
+        return $query->whereHas('roles', function ($query) {
+            $query->where('name', 'faculty');
+        });
+    }
+
+    public static function scopeAdmins($query)
+    {
+        return $query->whereHas('roles', function ($query) {
+            $query->where('name', 'super_admin');
         });
     }
 }

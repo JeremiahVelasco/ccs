@@ -16,18 +16,18 @@ use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 
-class Students extends Page implements HasForms, HasTable
+class Admins extends Page implements HasForms, HasTable
 {
     use InteractsWithTable;
     use InteractsWithForms;
 
-    protected static ?string $navigationIcon = 'heroicon-o-academic-cap';
+    protected static ?string $navigationIcon = 'heroicon-o-globe-alt';
 
-    protected static string $view = 'filament.pages.students';
+    protected static string $view = 'filament.pages.admins';
 
     protected static ?string $navigationGroup = 'User Management';
 
-    protected static ?int $navigationSort = 0;
+    protected static ?int $navigationSort = 2;
 
     public static function canAccess(): bool
     {
@@ -37,7 +37,7 @@ class Students extends Page implements HasForms, HasTable
     public function table(Table $table): Table
     {
         return $table
-            ->query(User::students())
+            ->query(User::admins())
             ->columns([
                 TextColumn::make('name')
                     ->searchable(),
