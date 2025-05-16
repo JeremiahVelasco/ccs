@@ -35,7 +35,6 @@ class DocumentationTasks extends Page implements HasForms, HasTable
             ->paginated(false)
             ->columns([
                 TextColumn::make('title'),
-                TextColumn::make('description'),
                 TextColumn::make('deadline'),
                 SelectColumn::make('assigned_to')
                     ->disabled(!auth()->user()->isLeader())

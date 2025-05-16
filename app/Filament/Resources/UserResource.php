@@ -43,7 +43,7 @@ class UserResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
-            ->query(User::faculty())
+            // ->query(User::faculty())
             ->columns([
                 TextColumn::make('name')
                     ->searchable(),

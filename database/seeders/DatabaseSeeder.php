@@ -35,12 +35,30 @@ class DatabaseSeeder extends Seeder
             'course' => 'BSITWMA',
         ]);
 
-        // Student 1
+        // Student 2
         User::factory()->create([
             'name' => 'Student Two',
             'email' => 'student2@gmail.com',
             'student_id' => '202450123',
             'course' => 'BSITAGD',
+        ]);
+
+        // Panelist 1
+        User::factory()->create([
+            'name' => 'Panelist One',
+            'email' => 'panel1@gmail.com',
+        ]);
+
+        // Panelist 2
+        User::factory()->create([
+            'name' => 'Panelist Two',
+            'email' => 'panel2@gmail.com',
+        ]);
+
+        // Panelist 3
+        User::factory()->create([
+            'name' => 'Panelist Three',
+            'email' => 'panel3@gmail.com',
         ]);
     }
 }

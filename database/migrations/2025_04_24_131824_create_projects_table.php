@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('logo')->nullable();
             $table->foreignId('group_id')->nullable()->constrained()->cascadeOnDelete();
             $table->text('description')->nullable();
+            $table->json('panelists')->nullable();
             $table->string('status')->default('In Progress');
             $table->string('progress')->nullable();
             $table->string('final_grade')->nullable();

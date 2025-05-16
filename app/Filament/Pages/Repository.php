@@ -2,14 +2,17 @@
 
 namespace App\Filament\Pages;
 
+use App\Filament\Resources\ProjectResource;
 use App\Models\Project;
+use Filament\Forms\Concerns\InteractsWithForms;
+use Filament\Forms\Contracts\HasForms;
+use Filament\Pages\Dashboard;
 use Filament\Pages\Page;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Forms\Contracts\HasForms;
-use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Concerns\InteractsWithTable;
-use Filament\Forms\Concerns\InteractsWithForms;
+use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Model;
 
 class Repository extends Page implements HasForms, HasTable
 {
@@ -24,6 +27,9 @@ class Repository extends Page implements HasForms, HasTable
     {
         return $table
             ->query(Project::query()->where('status', 'Done'))
+            ->recordUrl(
+                fn(Model $project): string => ProjectResource::getUrl('view', ['record' => $project->id]),
+            )
             ->columns([
                 TextColumn::make('title')
                     ->searchable(),

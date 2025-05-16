@@ -51,6 +51,7 @@ class Students extends Page implements HasForms, HasTable
                 TextColumn::make('group.name')
                     ->searchable(),
                 TextColumn::make('group_role')
+                    ->searchable()
             ])
             ->filters([
                 SelectFilter::make('group_role')

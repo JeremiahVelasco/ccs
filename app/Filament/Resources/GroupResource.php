@@ -19,6 +19,7 @@ use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class GroupResource extends Resource
@@ -48,15 +49,14 @@ class GroupResource extends Resource
                     ]),
                 Select::make('leader')
                     ->searchable()
-                    ->options(function () {
-                        return User::role('student')->pluck('name', 'id');
+                    ->options(function (Model $group) {
+                        return User::role('student')->where('group_id', $group->id)->pluck('name', 'id');
                     }),
                 Select::make('adviser')
                     ->searchable()
                     ->options(function () {
                         return User::role('faculty')->pluck('name', 'id');
                     }),
-                TagsInput::make('panelists')
             ]);
     }
 
@@ -66,9 +66,9 @@ class GroupResource extends Resource
             ->striped()
             ->columns([
                 TextColumn::make('name'),
+                TextColumn::make('leader.name'),
                 TextColumn::make('adviser')
                     ->label('Adviser'),
-                TextColumn::make('panelists'),
                 TextColumn::make('group_code'),
                 TextColumn::make('status')
                     ->badge()

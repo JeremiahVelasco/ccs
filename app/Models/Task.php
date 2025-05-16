@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Log;
 
 class Task extends Model
 {
@@ -40,5 +41,19 @@ class Task extends Model
     public function scopeDocumentation($query)
     {
         return $query->where('type', 'documentation');
+    }
+
+    public function markAsDone()
+    {
+        $this->status = 'Approved';
+
+        $this->save();
+    }
+
+    public function revertApproval()
+    {
+        $this->status = 'For Review';
+
+        $this->save();
     }
 }

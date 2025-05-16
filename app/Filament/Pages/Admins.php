@@ -41,23 +41,13 @@ class Admins extends Page implements HasForms, HasTable
             ->columns([
                 TextColumn::make('name')
                     ->searchable(),
-                TextColumn::make('student_id')
-                    ->label('Student ID')
-                    ->searchable(),
                 TextColumn::make('email')
                     ->searchable(),
-                TextColumn::make('course')
+                TextColumn::make('roles.name')
                     ->searchable(),
-                TextColumn::make('group.name')
-                    ->searchable(),
-                TextColumn::make('group_role')
             ])
             ->filters([
-                SelectFilter::make('group_role')
-                    ->options([
-                        'leader' => 'Leader',
-                        'member' => 'Member',
-                    ])
+                //
             ])
             ->actions([
                 EditAction::make()

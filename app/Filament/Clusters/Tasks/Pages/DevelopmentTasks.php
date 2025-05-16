@@ -48,7 +48,6 @@ class DevelopmentTasks extends Page implements HasForms, HasTable
             ->reorderable('sort')
             ->columns([
                 TextInputColumn::make('title'),
-                TextInputColumn::make('description'),
                 TextInputColumn::make('deadline'),
                 SelectColumn::make('status')
                     ->options([

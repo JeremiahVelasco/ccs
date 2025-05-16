@@ -71,7 +71,7 @@ class Group extends Model
 
     public function hasAdviser(): bool
     {
-        return $this->adviser !== null;
+        return !is_null($this->group_adviser_id);
     }
 
     public function hasProject(): bool

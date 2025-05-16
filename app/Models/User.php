@@ -134,4 +134,9 @@ class User extends Authenticatable implements FilamentUser, HasAvatar
             $query->where('name', 'super_admin');
         });
     }
+
+    public function projects()
+    {
+        return $this->hasMany(Project::class);
+    }
 }
