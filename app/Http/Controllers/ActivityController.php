@@ -2,19 +2,19 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Project;
+use App\Models\Activity;
 use Illuminate\Http\Request;
 
-class ProjectController extends Controller
+class ActivityController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        $projects = Project::query()->get();
+        $activity = Activity::query()->get();
 
-        return response()->json($projects);
+        return response()->json($activity);
     }
 
     /**
