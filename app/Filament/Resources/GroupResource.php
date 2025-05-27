@@ -41,13 +41,8 @@ class GroupResource extends Resource
                     ->columnSpanFull(),
                 Textarea::make('description')
                     ->columnSpanFull(),
-                Select::make('status')
-                    ->searchable()
-                    ->options([
-                        'Active' => 'Active',
-                        'Inactive' => 'Inactive',
-                    ]),
-                Select::make('leader')
+                Select::make('leader_id')
+                    ->label('Leader')
                     ->searchable()
                     ->options(function (Model $group) {
                         return User::role('student')->where('group_id', $group->id)->pluck('name', 'id');
@@ -70,13 +65,6 @@ class GroupResource extends Resource
                 TextColumn::make('adviser')
                     ->label('Adviser'),
                 TextColumn::make('group_code'),
-                TextColumn::make('status')
-                    ->badge()
-                    ->color(fn(string $state): string => match ($state) {
-                        'Active' => 'success',
-                        'Inactive' => 'gray',
-                        default => 'green',
-                    })
             ])
             ->filters([
                 //

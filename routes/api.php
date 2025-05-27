@@ -11,52 +11,57 @@ use App\Http\Controllers\TaskController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-
-
-
-Route::get('/user', function (Request $request) {
-    return $request->user();
-})->middleware('auth:sanctum');
+/*
+|--------------------------------------------------------------------------
+| API Routes
+|--------------------------------------------------------------------------
+|
+| Here is where you can register API routes for your application. These
+| routes are loaded by the RouteServiceProvider and all of them will
+| be assigned to the "api" middleware group.
+|
+*/
 
 // Auth Routes
-Route::post('/register', [AuthController::class, 'register']);
-Route::post('/login', [AuthController::class, 'login']);
-Route::post('/logout', [AuthController::class, 'logout']);
+Route::prefix('auth')->group(function () {
+    Route::post('/register', [AuthController::class, 'register']);
+    Route::post('/login', [AuthController::class, 'login']);
+    Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
+});
 
-// Dashboard routes
-Route::get('/dashboard', [DashboardController::class, 'index']);
+// Protected Routes
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/user', function (Request $request) {
+        return $request->user();
+    });
 
-// Repository Routes
-Route::get('/repository', [RepositoryController::class, 'index']);
+    // Dashboard routes
+    Route::get('/dashboard', [DashboardController::class, 'index']);
 
-// Projects Routes
-Route::get('/projects', [ProjectController::class, 'index']);
-Route::post('/projects/create-project', [ProjectController::class, 'store']);
-Route::put('/projects/{projectId}/update', [ProjectController::class, 'update']);
-Route::delete('/projects/{projectId}/delete', [ProjectController::class, 'destroy']);
+    // Repository Routes
+    Route::get('/repository', [RepositoryController::class, 'index']);
 
-// Grading Routes
-// Route::post('projects/{projectId}/')
+    // Projects Routes
+    Route::get('/projects', [ProjectController::class, 'index']);
+    Route::post('/projects/create-project', [ProjectController::class, 'store']);
+    Route::put('/projects/{projectId}/update', [ProjectController::class, 'update']);
+    Route::delete('/projects/{projectId}/delete', [ProjectController::class, 'destroy']);
 
-// Activities Routes
-Route::get('/activities', [ActivityController::class, 'index']);
+    // Activities Routes
+    Route::get('/activities', [ActivityController::class, 'index']);
 
-// Group Routes
-Route::get('/groups', [GroupController::class, 'index']);
-Route::get('/groups/{groupId}', [GroupController::class, 'show']);
+    // Group Routes
+    Route::get('/groups', [GroupController::class, 'index']);
+    Route::get('/groups/{groupId}', [GroupController::class, 'show']);
 
-// Project Routes
-Route::get('/projects', [ProjectController::class, 'index']);
+    // Task Routes
+    Route::get('/tasks/documentation', [TaskController::class, 'getDocumentationTasks']);
+    Route::get('/tasks/development', [TaskController::class, 'getDevelopmentTasks']);
+    Route::post('/tasks/create-development-task', [TaskController::class, 'store']);
+    Route::put('/tasks/{taskId}/update', [TaskController::class, 'update']);
+    Route::delete('/tasks/{taskId}/delete', [TaskController::class, 'destroy']);
 
-// Task Routes
-Route::get('/tasks/documentation', [TaskController::class, 'getDocumentationTasks']);
-Route::get('/tasks/development', [TaskController::class, 'getDevelopmentTasks']);
-Route::post('/tasks/create-development-task', [TaskController::class, 'store']);
-Route::put('/tasks/{taskId}/update', [TaskController::class, 'update']);
-Route::delete('/tasks/{taskId}/delete', [TaskController::class, 'destroy']);
-
-// Bayesian Routes
-Route::post('/projects/{projectId}/predict', [OpenAIController::class, 'predict']);
-Route::post('/projects/predict', [OpenAIController::class, 'predictAll']);
-
-// Priority Scheduling Routes
+    // Bayesian Routes
+    Route::post('/projects/{projectId}/predict', [OpenAIController::class, 'predict']);
+    Route::post('/projects/predict', [OpenAIController::class, 'predictAll']);
+});

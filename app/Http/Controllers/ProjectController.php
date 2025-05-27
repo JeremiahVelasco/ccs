@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Project;
+use App\Models\User;
 use Illuminate\Http\Request;
 
 class ProjectController extends Controller
@@ -30,7 +31,9 @@ class ProjectController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        Project::create($request->all());
+
+        return response()->json(['message' => 'Project created successfully']);
     }
 
     /**
@@ -38,7 +41,13 @@ class ProjectController extends Controller
      */
     public function show(string $id)
     {
-        //
+        $project = Project::find($id);
+
+        if (!$project) {
+            return response()->json(['message' => 'Project not found'], 404);
+        }
+
+        return response()->json($project);
     }
 
     /**
@@ -54,7 +63,15 @@ class ProjectController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        $project = Project::find($id);
+
+        if (!$project) {
+            return response()->json(['message' => 'Project not found'], 404);
+        }
+
+        $project->update($request->all());
+
+        return response()->json(['message' => 'Project updated successfully']);
     }
 
     /**
@@ -62,6 +79,36 @@ class ProjectController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        $project = Project::find($id);
+
+        if (!$project) {
+            return response()->json(['message' => 'Project not found'], 404);
+        }
+
+        $project->delete();
+
+        return response()->json(['message' => 'Project deleted successfully']);
+    }
+
+    public function fetchFaculty()
+    {
+        $faculty = User::whereHas('roles', function ($query) {
+            $query->where('name', 'faculty');
+        })->pluck('name', 'id');
+
+        return response()->json($faculty);
+    }
+
+    public function assignPanelists(Request $request, string $id)
+    {
+        $project = Project::find($id);
+        $project->panelists = $request->panelists;
+        $project->save();
+
+        if (!$project) {
+            return response()->json(['message' => 'Project not found'], 404);
+        }
+
+        return response()->json(['message' => 'Panelists assigned successfully']);
     }
 }

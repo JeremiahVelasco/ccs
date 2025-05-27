@@ -4,17 +4,32 @@ namespace App\Http\Controllers;
 
 use App\Models\Activity;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class ActivityController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(): JsonResponse
     {
-        $activity = Activity::query()->get();
+        try {
+            $activities = Activity::query()
+                ->orderBy('date', 'desc')
+                ->get();
 
-        return response()->json($activity);
+            return response()->json([
+                'status' => 'success',
+                'data' => $activities
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to fetch activities',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
@@ -28,17 +43,54 @@ class ActivityController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(Request $request): JsonResponse
     {
-        //
+        try {
+            $validated = $request->validate([
+                'title' => 'required|string|max:255',
+                'description' => 'required|string',
+                'date' => 'required|date',
+            ]);
+
+            $activity = Activity::create($validated);
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Activity created successfully',
+                'data' => $activity
+            ], 201);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to create activity',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(string $id)
+    public function show(string $id): JsonResponse
     {
-        //
+        try {
+            $activity = Activity::findOrFail($id);
+            return response()->json([
+                'status' => 'success',
+                'data' => $activity
+            ]);
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Activity not found'
+            ], 404);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to fetch activity',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
@@ -52,16 +104,61 @@ class ActivityController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, string $id): JsonResponse
     {
-        //
+        try {
+            $validated = $request->validate([
+                'title' => 'sometimes|required|string|max:255',
+                'description' => 'sometimes|required|string',
+                'date' => 'sometimes|required|date',
+            ]);
+
+            $activity = Activity::findOrFail($id);
+            $activity->update($validated);
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Activity updated successfully',
+                'data' => $activity
+            ]);
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Activity not found'
+            ], 404);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to update activity',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(string $id): JsonResponse
     {
-        //
+        try {
+            $activity = Activity::findOrFail($id);
+            $activity->delete();
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Activity deleted successfully'
+            ]);
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Activity not found'
+            ], 404);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to delete activity',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 }

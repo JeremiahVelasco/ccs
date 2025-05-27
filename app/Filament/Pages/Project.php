@@ -117,6 +117,7 @@ class Project extends Page
                 'title' => $data['title'],
                 'logo' => $data['logo'],
                 'description' => $data['description'],
+                'leader_id' => auth()->user()->id,
                 'status' => 'In Progress',
                 'progress' => 0,
                 'group_id' => $this->group->id,
