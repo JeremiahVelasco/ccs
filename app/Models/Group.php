@@ -46,7 +46,7 @@ class Group extends Model
 
     public function adviser()
     {
-        return $this->hasOne(User::class, 'adviser');
+        return $this->hasOne(User::class, 'id');
     }
 
     public function leader()

@@ -40,7 +40,7 @@ class GroupController extends Controller
      */
     public function show(string $id)
     {
-        $group = Group::find($id);
+        $group = Group::with(['leader', 'adviser'])->find($id);
 
         if (!$group) {
             return response()->json(['message' => 'Group not found'], 404);

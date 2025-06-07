@@ -39,4 +39,10 @@ class Repository extends Page implements HasForms, HasTable
                 TextColumn::make('awards'),
             ]);
     }
+
+    public static function canAccess(): bool
+    {
+
+        return true;
+    }
 }

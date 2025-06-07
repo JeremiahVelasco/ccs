@@ -15,7 +15,13 @@ class ProjectPolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->can('view_any_project');
+        // Allow if user has view_any_project permission
+        if ($user->can('view_any_project')) {
+            return true;
+        }
+
+        // Allow students to view repository projects list
+        return true;
     }
 
     /**
@@ -23,7 +29,17 @@ class ProjectPolicy
      */
     public function view(User $user, Project $project): bool
     {
-        return $user->can('view_project');
+        // Allow viewing if user has view_project permission
+        if ($user->can('view_project')) {
+            return true;
+        }
+
+        // Allow students to view repository projects (status = Done)
+        if ($project->status === 'Done') {
+            return true;
+        }
+
+        return false;
     }
 
     /**

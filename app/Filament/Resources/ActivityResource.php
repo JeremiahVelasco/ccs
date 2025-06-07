@@ -19,14 +19,13 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Facades\Auth;
 
 class ActivityResource extends Resource
 {
     protected static ?string $model = Activity::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-calendar-days';
-
-
 
     public static function form(Form $form): Form
     {
@@ -81,8 +80,20 @@ class ActivityResource extends Resource
     {
         return [
             'index' => Pages\ListActivities::route('/'),
+            'view' => Pages\ViewActivity::route('/{record}'),
             'create' => Pages\CreateActivity::route('/create'),
             'edit' => Pages\EditActivity::route('/{record}/edit'),
         ];
+    }
+
+    public static function canAccess(): bool
+    {
+        // Allow if user has view_any_activity permission
+        if (Auth::user()->can('view_any_activity')) {
+            return true;
+        }
+
+        // Allow students to access activities
+        return true;
     }
 }

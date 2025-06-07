@@ -229,9 +229,8 @@ class ProjectResource extends Resource
                         // Update the project's final grade if needed
                         // This will depend on your logic - could be the latest grade, an average, etc.
                         $project->update([
-                            'final_grade' => $totalScore,
-                            // Maybe also update status if needed
-                            // 'status' => 'Done',
+                            'final_grade' => ProjectGrade::where('project_id', $project->id)
+                                ->avg('total_score'),
                         ]);
 
                         Notification::make()
@@ -267,6 +266,12 @@ class ProjectResource extends Resource
 
     public static function canAccess(): bool
     {
-        return auth()->user()->specialAccess();
+        // Allow access to individual projects (for repository)
+        if (request()->routeIs('filament.resources.projects.view')) {
+            return true;
+        }
+
+        // Only allow users with view_any_project permission to access the Projects page
+        return Auth::user()->can('view_any_project');
     }
 }

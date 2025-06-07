@@ -31,7 +31,7 @@ class DocumentationTasks extends Page implements HasForms, HasTable
     {
         return $table
             ->striped()
-            ->query(Task::documentation())
+            ->query(Task::documentation()->where('project_id', auth()->user()->group->project->id))
             ->paginated(false)
             ->columns([
                 TextColumn::make('title'),

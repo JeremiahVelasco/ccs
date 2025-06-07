@@ -8,8 +8,10 @@ use App\Http\Controllers\OpenAIController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\RepositoryController;
 use App\Http\Controllers\TaskController;
+use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -35,6 +37,12 @@ Route::middleware('auth:sanctum')->group(function () {
         return $request->user();
     });
 
+    // User Routes
+    Route::get('/users/faculty', [UserController::class, 'getFaculty']);
+    Route::get('/users/student', [UserController::class, 'getStudent']);
+    Route::get('/users/admin', [UserController::class, 'getAdmin']);
+    Route::put('/users/update-profile', [UserController::class, 'updateProfile']);
+
     // Dashboard routes
     Route::get('/dashboard', [DashboardController::class, 'index']);
 
@@ -53,6 +61,9 @@ Route::middleware('auth:sanctum')->group(function () {
     // Group Routes
     Route::get('/groups', [GroupController::class, 'index']);
     Route::get('/groups/{groupId}', [GroupController::class, 'show']);
+    Route::post('/groups/create-group', [GroupController::class, 'store']);
+    Route::put('/groups/{groupId}/update', [GroupController::class, 'update']);
+    Route::delete('/groups/{groupId}/delete', [GroupController::class, 'destroy']);
 
     // Task Routes
     Route::get('/tasks/documentation', [TaskController::class, 'getDocumentationTasks']);

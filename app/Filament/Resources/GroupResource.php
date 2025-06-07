@@ -62,7 +62,7 @@ class GroupResource extends Resource
             ->columns([
                 TextColumn::make('name'),
                 TextColumn::make('leader.name'),
-                TextColumn::make('adviser')
+                TextColumn::make('adviser.name')
                     ->label('Adviser'),
                 TextColumn::make('group_code'),
             ])

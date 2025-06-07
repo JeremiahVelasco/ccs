@@ -44,7 +44,7 @@ class DevelopmentTasks extends Page implements HasForms, HasTable
     public function table(Table $table): Table
     {
         return $table
-            ->query(Task::development())
+            ->query(Task::development()->where('project_id', auth()->user()->group->project->id))
             ->reorderable('sort')
             ->columns([
                 TextInputColumn::make('title'),
