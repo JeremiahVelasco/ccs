@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 
 class Task extends Model
 {
@@ -16,7 +17,9 @@ class Task extends Model
         'type', // documentation or development
         'date_accomplished',
         'status', // To-do, In Progress, For Review, Approved
-        'sort'
+        'file_path',
+        'sort',
+        'is_faculty_approved'
     ];
 
     protected $casts = [
@@ -55,5 +58,10 @@ class Task extends Model
         $this->status = 'For Review';
 
         $this->save();
+    }
+
+    public function hasFile()
+    {
+        return $this->file_path !== null && Storage::disk('public')->exists($this->file_path);
     }
 }

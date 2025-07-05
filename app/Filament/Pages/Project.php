@@ -11,8 +11,10 @@ use Filament\Forms\Components\Slider;
 use Filament\Forms\Form;
 use Filament\Notifications\Notification;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 use App\Models\Project as ProjectModel;
 use App\Models\Group;
+use App\Services\ProjectPredictionService;
 
 class Project extends Page
 {
@@ -30,13 +32,13 @@ class Project extends Page
 
     public static function canAccess(): bool
     {
-        return auth()->user()->isStudent();
+        return Auth::user()->isStudent();
     }
 
     public function mount(): void
     {
         // Get the user's group
-        $this->group = auth()->user()->group;
+        $this->group = Auth::user()->group;
 
         // Check if user's group has a project
         if ($this->group) {
@@ -48,7 +50,10 @@ class Project extends Page
                     'title' => $this->project->title,
                     'logo' => $this->project->logo,
                     'description' => $this->project->description,
-                    'status' => $this->project->status
+                    'status' => $this->project->status,
+                    'deadline' => $this->project->deadline,
+                    'progress' => $this->project->progress,
+                    'completion_probability' => $this->project->completion_probability,
                 ]);
             }
         }
@@ -117,7 +122,7 @@ class Project extends Page
                 'title' => $data['title'],
                 'logo' => $data['logo'],
                 'description' => $data['description'],
-                'leader_id' => auth()->user()->id,
+                'leader_id' => Auth::user()->id,
                 'status' => 'In Progress',
                 'progress' => 0,
                 'group_id' => $this->group->id,
@@ -193,5 +198,34 @@ class Project extends Page
                 ->danger()
                 ->send();
         }
+    }
+
+    public function refreshPrediction()
+    {
+        $predictionService = new ProjectPredictionService();
+        $prediction = $predictionService->predictCompletion($this->project);
+
+        Notification::make()
+            ->title('Success')
+            ->body('Prediction refreshed successfully!')
+            ->success()
+            ->send();
+    }
+
+    public function uploadFile($file)
+    {
+        $this->project->files()->create([
+            'project_id' => $this->project->id,
+            'title' => $file['title'],
+            'description' => $file['description'],
+            'file_link' => $file['file_link'],
+            'file_path' => $file['file_path'],
+        ]);
+
+        Notification::make()
+            ->title('Success')
+            ->body('File uploaded successfully!')
+            ->success()
+            ->send();
     }
 }

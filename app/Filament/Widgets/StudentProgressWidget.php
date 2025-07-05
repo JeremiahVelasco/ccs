@@ -31,15 +31,11 @@ class StudentProgressWidget extends ChartWidget
                         ],
                     ],
                 ],
-                'labels' => ['To-do', 'In Progress', 'For Review', 'Approved'],
+                'labels' => ['To-do', 'In Progress', 'For Review', 'Done', 'Approved'],
             ];
         }
 
         $tasks = Task::where('project_id', $project->id)
-            ->where(function ($query) use ($user) {
-                $query->whereJsonContains('assigned_to', $user->id)
-                    ->orWhereNull('assigned_to');
-            })
             ->get();
 
         $statusCounts = [

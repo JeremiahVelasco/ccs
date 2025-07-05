@@ -27,6 +27,7 @@ class FacultyAnalyticsWidget extends ChartWidget
         $allProjects = $advisedProjects->merge($panelistProjects)->unique('id');
 
         $statusCounts = [
+            'To-do' => $allProjects->where('status', 'To-do')->count(),
             'In Progress' => $allProjects->where('status', 'In Progress')->count(),
             'For Review' => $allProjects->where('status', 'For Review')->count(),
             'Done' => $allProjects->where('status', 'Done')->count(),

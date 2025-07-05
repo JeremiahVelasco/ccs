@@ -35,12 +35,39 @@
                 <div class="bg-white rounded-lg shadow dark:bg-gray-800 p-6">
                     <form wire:submit.prevent="updateProject">
                         {{ $this->form }}
-                        
+
                         <div class="mt-6 flex justify-end">
                             <x-filament::button type="submit">
                                 Update Project
                             </x-filament::button>
                         </div>
+                    </form>
+                </div>
+            </div>
+            <div class="p-6 bg-white rounded-lg shadow dark:bg-gray-800">
+                <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Completion Prediction</h3>
+                <p class="text-2xl font-bold">
+                    {{ $this->project->completion_probability * 100 }}%
+                </p>
+                <div class="flex justify-between items-center">
+                    @if ($this->project->last_prediction_at)
+                        <p class="text-sm text-gray-500 dark:text-gray-400">
+                            Last updated {{ $this->project->last_prediction_at->diffForHumans()}}
+                        </p>
+                    @endif
+                    <form wire:submit.prevent="refreshPrediction">
+                        <x-filament::button type="submit" wire:loading.attr="disabled" wire:target="refreshPrediction">
+                            <span wire:loading.remove wire:target="refreshPrediction">
+                                Refresh Prediction
+                            </span>
+                            <span wire:loading wire:target="refreshPrediction" class="flex items-center">
+                                <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                Refreshing...
+                            </span>
+                        </x-filament::button>
                     </form>
                 </div>
             </div>
@@ -55,15 +82,9 @@
                         <div>
                             <h2 class="text-xl font-semibold text-gray-900 dark:text-white">{{ $this->project->title }}</h2>
                             <div class="mt-1 flex items-center">
-                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+                                <span class="inline-flex items-center py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
                                     {{ $this->project->status }}
                                 </span>
-                                <div class="ml-3 flex items-center">
-                                    <div class="w-24 bg-gray-200 rounded-full h-2.5 dark:bg-gray-700 mr-2">
-                                        <div class="bg-blue-600 h-2.5 rounded-full" style="width: {{ $this->project->progress }}%"></div>
-                                    </div>
-                                    <span class="text-xs text-gray-500 dark:text-gray-400">{{ $this->project->progress }}%</span>
-                                </div>
                             </div>
                         </div>
                     </div>
@@ -71,11 +92,11 @@
                         Created {{ $this->project->created_at->diffForHumans() }}
                     </div>
                 </div>
-                
+
                 <div class="mt-4 text-sm text-gray-600 dark:text-gray-300">
                     <p class="whitespace-pre-line">{{ $this->project->description }}</p>
                 </div>
-                
+
                 <!-- Project Files Section -->
                 <div class="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
                     <div class="flex justify-between items-center">
@@ -87,7 +108,7 @@
                             Upload File
                         </a>
                     </div>
-                    
+
                     @if($this->project->files->count() > 0)
                         <ul class="mt-3 divide-y divide-gray-200 dark:divide-gray-700">
                             @foreach($this->project->files as $file)
@@ -118,7 +139,7 @@
                         </div>
                     @endif
                 </div>
-                
+
                 <!-- Project Awards Section -->
                 @if($this->project->awards && count($this->project->awards) > 0)
                     <div class="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
@@ -135,7 +156,7 @@
                         </div>
                     </div>
                 @endif
-                
+
                 <!-- Final Grade Section -->
                 @if($this->project->final_grade)
                     <div class="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">

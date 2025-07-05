@@ -15,13 +15,7 @@ class ActivityPolicy
      */
     public function viewAny(User $user): bool
     {
-        // Allow if user has view_any_activity permission
-        if ($user->can('view_any_activity')) {
-            return true;
-        }
-
-        // Allow students to view activities
-        return true;
+        return $user->can('view_any_activity');
     }
 
     /**
@@ -29,13 +23,7 @@ class ActivityPolicy
      */
     public function view(User $user, Activity $activity): bool
     {
-        // Allow if user has view_activity permission
-        if ($user->can('view_activity')) {
-            return true;
-        }
-
-        // Allow students to view activities
-        return true;
+        return $user->can('view_activity');
     }
 
     /**

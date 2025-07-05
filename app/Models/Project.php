@@ -11,17 +11,25 @@ class Project extends Model
         'logo',
         'group_id',
         'description',
+        'deadline',
         'panelists',
         'status', // In Progress, For Review, Done
         'progress',
         'final_grade',
         'awards',
         'completion_probability',
+        'last_prediction_at',
+        'prediction_config',
+        'prediction_version',
     ];
 
     protected $casts = [
         'panelists' => 'array',
-        'awards' => 'array'
+        'awards' => 'array',
+        'completion_probability' => 'float',
+        'deadline' => 'date',
+        'prediction_config' => 'array',
+        'last_prediction_at' => 'datetime',
     ];
 
     protected $appends = [
@@ -89,6 +97,15 @@ class Project extends Model
         return $documentationTasks;
     }
 
+    public function progress()
+    {
+        $totalTasks = $this->tasks()->count();
+        $completedTasks = $this->tasks()->whereIn('status', ['Approved', 'Done'])->count();
+
+
+        return $completedTasks / $totalTasks;
+    }
+
     public function files()
     {
         return $this->hasMany(File::class);
@@ -127,5 +144,20 @@ class Project extends Model
     public function grades()
     {
         return $this->hasMany(ProjectGrade::class);
+    }
+
+    public function tasks()
+    {
+        return $this->hasMany(Task::class);
+    }
+
+    public function predictionHistory()
+    {
+        return $this->hasMany(PredictionHistory::class);
+    }
+
+    public function latestPrediction()
+    {
+        return $this->hasOne(PredictionHistory::class)->latestOfMany();
     }
 }

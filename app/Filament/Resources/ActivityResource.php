@@ -80,20 +80,9 @@ class ActivityResource extends Resource
     {
         return [
             'index' => Pages\ListActivities::route('/'),
-            'view' => Pages\ViewActivity::route('/{record}'),
             'create' => Pages\CreateActivity::route('/create'),
+            'view' => Pages\ViewActivity::route('/{record}'),
             'edit' => Pages\EditActivity::route('/{record}/edit'),
         ];
-    }
-
-    public static function canAccess(): bool
-    {
-        // Allow if user has view_any_activity permission
-        if (Auth::user()->can('view_any_activity')) {
-            return true;
-        }
-
-        // Allow students to access activities
-        return true;
     }
 }

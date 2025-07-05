@@ -23,7 +23,8 @@ class FacultyPanelistAssignmentsWidget extends BaseWidget
         return $table
             ->query(
                 Project::query()
-                    ->whereJsonContains('panelists', $user->id)
+                    ->where('status', 'For Review')
+                    ->whereJsonContains('panelists', (string) $user->id)
                     ->with(['group.leader', 'group.adviser'])
             )
             ->columns([
@@ -39,9 +40,6 @@ class FacultyPanelistAssignmentsWidget extends BaseWidget
                 TextColumn::make('group.name')
                     ->label('Group')
                     ->searchable(),
-
-                TextColumn::make('group.leader.name')
-                    ->label('Group Leader'),
 
                 TextColumn::make('status')
                     ->badge()
@@ -75,7 +73,7 @@ class FacultyPanelistAssignmentsWidget extends BaseWidget
                     ->label('Grade')
                     ->url(
                         fn(Project $record): string =>
-                        route('filament.admin.pages.project', ['project' => $record->id]) . '?tab=grading'
+                        route('filament.admin.resources.groups.edit', ['record' => $record->group->id]) . '?tab=grading'
                     )
                     ->openUrlInNewTab()
                     ->visible(function (Project $record) use ($user) {
@@ -86,7 +84,7 @@ class FacultyPanelistAssignmentsWidget extends BaseWidget
                     ->icon('heroicon-m-eye')
                     ->url(
                         fn(Project $record): string =>
-                        route('filament.admin.pages.project', ['project' => $record->id])
+                        route('filament.admin.resources.groups.edit', ['record' => $record->group->id])
                     )
                     ->openUrlInNewTab(),
             ])

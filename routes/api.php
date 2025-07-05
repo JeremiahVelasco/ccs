@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ActivityController;
+use App\Http\Controllers\ProjectPredictionController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\GroupController;
@@ -11,6 +12,7 @@ use App\Http\Controllers\TaskController;
 use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+
 
 
 /*
@@ -37,6 +39,15 @@ Route::middleware('auth:sanctum')->group(function () {
         return $request->user();
     });
 
+    // Bayesian Network Prediction Routes
+    Route::prefix('predictions')->group(function () {
+        Route::get('/projects/{project}/predict', [ProjectPredictionController::class, 'predict']);
+        Route::post('/projects/{project}/refresh', [ProjectPredictionController::class, 'refreshPrediction']);
+        Route::get('/projects/{project}/history', [ProjectPredictionController::class, 'getPredictionHistory']);
+        Route::post('/projects/bulk-predict', [ProjectPredictionController::class, 'bulkPredict']);
+        Route::get('/system/health', [ProjectPredictionController::class, 'getSystemHealth']);
+    });
+
     // User Routes
     Route::get('/users/faculty', [UserController::class, 'getFaculty']);
     Route::get('/users/student', [UserController::class, 'getStudent']);
@@ -48,15 +59,18 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Repository Routes
     Route::get('/repository', [RepositoryController::class, 'index']);
+    Route::get('/repository/{projectId}', [RepositoryController::class, 'show']);
 
     // Projects Routes
     Route::get('/projects', [ProjectController::class, 'index']);
+    Route::get('/projects/{projectId}', [ProjectController::class, 'show']);
     Route::post('/projects/create-project', [ProjectController::class, 'store']);
     Route::put('/projects/{projectId}/update', [ProjectController::class, 'update']);
     Route::delete('/projects/{projectId}/delete', [ProjectController::class, 'destroy']);
 
     // Activities Routes
     Route::get('/activities', [ActivityController::class, 'index']);
+    Route::get('/activities/{activityId}', [ActivityController::class, 'show']);
 
     // Group Routes
     Route::get('/groups', [GroupController::class, 'index']);
@@ -72,7 +86,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/tasks/{taskId}/update', [TaskController::class, 'update']);
     Route::delete('/tasks/{taskId}/delete', [TaskController::class, 'destroy']);
 
-    // Bayesian Routes
-    Route::post('/projects/{projectId}/predict', [OpenAIController::class, 'predict']);
-    Route::post('/projects/predict', [OpenAIController::class, 'predictAll']);
+    // Legacy OpenAI Routes (consider deprecating in favor of Bayesian predictions)
+    Route::post('/projects/{projectId}/predict-legacy', [OpenAIController::class, 'predict']);
+    Route::post('/projects/predict-legacy', [OpenAIController::class, 'predictAll']);
 });

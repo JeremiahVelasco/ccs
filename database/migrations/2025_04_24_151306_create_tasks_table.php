@@ -21,7 +21,9 @@ return new class extends Migration
             $table->string('type')->nullable();
             $table->date('date_accomplished')->nullable();
             $table->string('status');
+            $table->string('file_path')->nullable();
             $table->integer('sort')->nullable();
+            $table->boolean('is_faculty_approved')->default(false);
             $table->timestamps();
         });
     }

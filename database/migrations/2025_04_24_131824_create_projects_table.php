@@ -22,6 +22,8 @@ return new class extends Migration
             $table->string('progress')->nullable();
             $table->string('final_grade')->nullable();
             $table->json('awards')->nullable();
+            $table->decimal('completion_probability', 5, 4)->nullable();
+            $table->timestamp('last_prediction_at')->nullable();
             $table->timestamps();
         });
     }

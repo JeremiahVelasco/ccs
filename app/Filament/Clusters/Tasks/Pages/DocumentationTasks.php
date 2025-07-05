@@ -5,16 +5,17 @@ namespace App\Filament\Clusters\Tasks\Pages;
 use App\Filament\Clusters\Tasks;
 use App\Models\Task;
 use App\Models\User;
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Table;
-use Filament\Forms\Contracts\HasForms;
-use Filament\Tables\Contracts\HasTable;
 use Filament\Forms\Concerns\InteractsWithForms;
-use Filament\Tables\Concerns\InteractsWithTable;
+use Filament\Forms\Contracts\HasForms;
 use Filament\Pages\Page;
 use Filament\Tables\Actions\Action;
 use Filament\Tables\Columns\SelectColumn;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Concerns\InteractsWithTable;
+use Filament\Tables\Contracts\HasTable;
+use Filament\Tables\Table;
 
 class DocumentationTasks extends Page implements HasForms, HasTable
 {
@@ -44,7 +45,26 @@ class DocumentationTasks extends Page implements HasForms, HasTable
                         'To-do' => 'To-do',
                         'In Progress' => 'In Progress',
                         'For Review' => 'For Review',
+                        'Approved' => 'Approved',
                     ])
+                    ->disabled(fn($record) => $record->status === 'Approved'),
+            ])
+            ->actions([
+                Action::make('upload')
+                    ->disabled(fn($record) => $record->hasFile())
+                    ->form([
+                        FileUpload::make('file')
+                            ->label('Upload File')
+                            ->required()
+                            ->disk('public')
+                            ->directory('task-files')
+                    ])
+                    ->action(function ($record) {
+                        $record->file_path = '/' . $record->title . '.pdf';
+                        $record->save();
+                    })
+                    ->icon('heroicon-o-paper-clip')
+                    ->color('primary'),
             ]);
     }
 }

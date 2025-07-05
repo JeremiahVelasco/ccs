@@ -67,7 +67,7 @@ class FacultyAdvisedGroupsWidget extends BaseWidget
                     ->icon('heroicon-m-eye')
                     ->url(
                         fn(Group $record): string =>
-                        $record->project ? route('filament.admin.pages.project', ['project' => $record->project->id]) : '#'
+                        $record->project ? route('filament.admin.resources.groups.edit', ['record' => $record->id]) : '#'
                     )
                     ->openUrlInNewTab()
                     ->visible(fn(Group $record) => $record->project !== null),
