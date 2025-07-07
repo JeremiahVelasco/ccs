@@ -87,7 +87,7 @@ class User extends Authenticatable implements FilamentUser, HasAvatar
 
     public function project()
     {
-        return $this->hasOne(Project::class);
+        return $this->belongsTo(Project::class, 'group_id', 'group_id');
     }
 
     public function specialAccess()

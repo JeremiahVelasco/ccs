@@ -3,6 +3,7 @@
 namespace App\Filament\Clusters\Tasks\Pages;
 
 use App\Filament\Clusters\Tasks;
+use App\Filament\Clusters\Tasks\Resources\TaskResource;
 use App\Models\Task;
 use App\Models\User;
 use Filament\Forms\Components\FileUpload;
@@ -16,6 +17,8 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Table;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Database\Eloquent\Model;
 
 class DocumentationTasks extends Page implements HasForms, HasTable
 {
@@ -32,14 +35,18 @@ class DocumentationTasks extends Page implements HasForms, HasTable
     {
         return $table
             ->striped()
-            ->query(Task::documentation()->where('project_id', auth()->user()->group->project->id))
+            ->query(Task::documentation()->where('project_id', Auth::user()->group->project->id))
             ->paginated(false)
+            ->recordUrl(
+                fn(Model $task): string => TaskResource::getUrl('edit', ['record' => $task->id]),
+            )
             ->columns([
                 TextColumn::make('title'),
-                TextColumn::make('deadline'),
+                TextColumn::make('deadline')
+                    ->date(),
                 SelectColumn::make('assigned_to')
-                    ->disabled(!auth()->user()->isLeader())
-                    ->options(User::query()->where('group_id', auth()->user()->group_id)->pluck('name', 'id')->toArray()),
+                    ->disabled(!Auth::user()->isLeader())
+                    ->options(User::query()->where('group_id', Auth::user()->group_id)->pluck('name', 'id')->toArray()),
                 SelectColumn::make('status')
                     ->options([
                         'To-do' => 'To-do',
@@ -51,19 +58,21 @@ class DocumentationTasks extends Page implements HasForms, HasTable
             ])
             ->actions([
                 Action::make('upload')
-                    ->disabled(fn($record) => $record->hasFile())
+                    ->disabled(fn($record) => !empty($record->file_path))
+                    ->visible(fn($record) => empty($record->file_path))
+                    ->tooltip('Upload File')
+                    ->hiddenLabel()
                     ->form([
                         FileUpload::make('file')
                             ->label('Upload File')
-                            ->required()
                             ->disk('public')
                             ->directory('task-files')
                     ])
-                    ->action(function ($record) {
-                        $record->file_path = '/' . $record->title . '.pdf';
+                    ->action(function ($record, $data) {
+                        $record->file_path = $data['file'];
                         $record->save();
                     })
-                    ->icon('heroicon-o-paper-clip')
+                    ->icon('heroicon-o-arrow-up-tray')
                     ->color('primary'),
             ]);
     }

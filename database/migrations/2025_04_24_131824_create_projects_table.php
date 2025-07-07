@@ -24,6 +24,7 @@ return new class extends Migration
             $table->json('awards')->nullable();
             $table->decimal('completion_probability', 5, 4)->nullable();
             $table->timestamp('last_prediction_at')->nullable();
+            $table->dateTime('deadline')->nullable();
             $table->timestamps();
         });
     }

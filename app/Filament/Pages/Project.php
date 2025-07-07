@@ -124,7 +124,6 @@ class Project extends Page
                 'description' => $data['description'],
                 'leader_id' => Auth::user()->id,
                 'status' => 'In Progress',
-                'progress' => 0,
                 'group_id' => $this->group->id,
                 'awards' => [],
             ]);
@@ -212,20 +211,5 @@ class Project extends Page
             ->send();
     }
 
-    public function uploadFile($file)
-    {
-        $this->project->files()->create([
-            'project_id' => $this->project->id,
-            'title' => $file['title'],
-            'description' => $file['description'],
-            'file_link' => $file['file_link'],
-            'file_path' => $file['file_path'],
-        ]);
-
-        Notification::make()
-            ->title('Success')
-            ->body('File uploaded successfully!')
-            ->success()
-            ->send();
-    }
+    public function uploadFile() {}
 }

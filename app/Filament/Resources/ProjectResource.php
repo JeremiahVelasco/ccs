@@ -90,6 +90,7 @@ class ProjectResource extends Resource
                                         'Done' => 'Done'
                                     ]),
                                 TextInput::make('progress')
+                                    ->disabled()
                                     ->numeric()
                                     ->default(0)
                                     ->minValue(0)

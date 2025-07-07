@@ -59,9 +59,4 @@ class Task extends Model
 
         $this->save();
     }
-
-    public function hasFile()
-    {
-        return $this->file_path !== null && Storage::disk('public')->exists($this->file_path);
-    }
 }

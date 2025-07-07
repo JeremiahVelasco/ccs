@@ -60,6 +60,7 @@ class DevelopmentTasks extends Page implements HasForms, HasTable
             ->actions([
                 EditAction::make()
                     ->hiddenLabel()
+                    ->tooltip('Edit Task')
                     ->form([
                         Hidden::make('project_id')
                             ->default(auth()->user()->group->id),
@@ -85,6 +86,7 @@ class DevelopmentTasks extends Page implements HasForms, HasTable
                     ]),
 
                 DeleteAction::make()
+                    ->tooltip('Delete Task')
                     ->hiddenLabel()
             ])
             ->headerActions([
