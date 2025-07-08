@@ -27,15 +27,15 @@ class CalendarWidget extends FullCalendarWidget
     public function fetchEvents(array $fetchInfo): array
     {
         return Activity::query()
-            ->where('date', '>=', $fetchInfo['start'])
-            ->where('date', '<=', $fetchInfo['end'])
+            ->where('start_date', '<=', $fetchInfo['end'])
+            ->where('end_date', '>=', $fetchInfo['start'])
             ->get()
             ->map(
                 fn(Activity $activity) => [
                     'id' => $activity->id,
                     'title' => $activity->title,
-                    'start' => $activity->date->toISOString(),
-                    'end' => $activity->end_date?->toISOString(),
+                    'start' => $activity->start_date,
+                    'end' => $activity->end_date,
                     'url' => ActivityResource::getUrl(name: 'edit', parameters: ['record' => $activity]),
                     'shouldOpenUrlInNewTab' => false,
                     'backgroundColor' => $this->getPriorityColor($activity->priority),
@@ -58,16 +58,28 @@ class CalendarWidget extends FullCalendarWidget
             Actions\CreateAction::make()
                 ->mountUsing(
                     function (Form $form, array $arguments) {
+                        // Handle different argument structures that FullCalendar might pass
+                        $startDate = $arguments['start'] ?? $arguments['start_date'] ?? $arguments['startStr'] ?? now();
+                        $endDate = $arguments['end'] ?? $arguments['end_date'] ?? $arguments['endStr'] ?? now()->addHours(1);
+
+                        // If the dates are strings, parse them
+                        if (is_string($startDate)) {
+                            $startDate = \Carbon\Carbon::parse($startDate);
+                        }
+                        if (is_string($endDate)) {
+                            $endDate = \Carbon\Carbon::parse($endDate);
+                        }
+
                         $form->fill([
-                            'date' => $arguments['start'] ?? $arguments['date'] ?? now(),
+                            'start_date' => $startDate,
+                            'end_date' => $endDate,
                             'priority' => Activity::PRIORITY_MEDIUM,
-                            'duration' => 60,
                             'is_flexible' => true,
                         ]);
                     }
                 )
                 ->action(function (array $data) {
-                    $result = $this->scheduler->scheduleActivity($data);
+                    $result = $this->getScheduler()->scheduleActivity($data);
 
                     if ($result['success']) {
                         Notification::make()
@@ -93,6 +105,45 @@ class CalendarWidget extends FullCalendarWidget
                             ->body($result['message'])
                             ->warning()
                             ->send();
+
+                        // Show debug information
+                        if (!empty($result['debug_info'])) {
+                            $debugInfo = $result['debug_info'];
+
+                            $debugBody = "DEBUG INFO:\n\n";
+                            $debugBody .= "New Activity: " . $debugInfo['new_activity']['title'] . " (Priority: " . $debugInfo['new_activity']['priority_label'] . ")\n";
+                            $debugBody .= "Time: " . $debugInfo['new_activity']['start_date'] . " to " . $debugInfo['new_activity']['end_date'] . "\n\n";
+
+                            if (!empty($debugInfo['conflicts_found']['details'])) {
+                                $debugBody .= "Conflicts Found (" . $debugInfo['conflicts_found']['count'] . "):\n";
+                                foreach ($debugInfo['conflicts_found']['details'] as $conflict) {
+                                    $debugBody .= "- " . $conflict['title'] . " (Priority: " . $conflict['priority_label'] . ", Flexible: " . ($conflict['is_flexible'] ? 'Yes' : 'No') . ")\n";
+                                    $debugBody .= "  Time: " . $conflict['start_date'] . " to " . $conflict['end_date'] . "\n";
+                                }
+                                $debugBody .= "\n";
+                            }
+
+                            if (!empty($debugInfo['priority_analysis'])) {
+                                $analysis = $debugInfo['priority_analysis'];
+                                $debugBody .= "Priority Analysis:\n";
+                                $debugBody .= "- Higher priority conflicts: " . $analysis['higher_priority_conflicts']['count'] . "\n";
+                                $debugBody .= "- Same priority conflicts: " . $analysis['same_priority_conflicts']['count'] . "\n";
+                                $debugBody .= "- Lower priority conflicts: " . $analysis['lower_priority_conflicts']['count'] . "\n\n";
+                            }
+
+                            if (!empty($debugInfo['decision_path'])) {
+                                $debugBody .= "Decision Path:\n";
+                                foreach ($debugInfo['decision_path'] as $step) {
+                                    $debugBody .= "- " . $step . "\n";
+                                }
+                            }
+
+                            Notification::make()
+                                ->title('Debug Information')
+                                ->body($debugBody)
+                                ->info()
+                                ->send();
+                        }
 
                         // You could also show suggested times in a modal or additional notification
                         if (!empty($result['suggested_times'])) {
@@ -125,9 +176,9 @@ class CalendarWidget extends FullCalendarWidget
                             $form->fill([
                                 'title' => $activity->title,
                                 'description' => $activity->description,
-                                'date' => $activity->date,
+                                'start_date' => $activity->start_date,
+                                'end_date' => $activity->end_date,
                                 'priority' => $activity->priority,
-                                'duration' => $activity->duration ?? 60,
                                 'is_flexible' => $activity->is_flexible,
                                 'category' => $activity->category,
                             ]);
@@ -141,12 +192,12 @@ class CalendarWidget extends FullCalendarWidget
 
                     if ($activity) {
                         // Check if the time or priority changed
-                        $dateChanged = $activity->date->ne($data['date']);
+                        $dateChanged = $activity->start_date->ne($data['start_date']);
                         $priorityChanged = $activity->priority !== $data['priority'];
 
                         if ($dateChanged || $priorityChanged) {
                             // Use scheduler to handle potential conflicts
-                            $result = $this->scheduler->scheduleActivity(array_merge($data, [
+                            $result = $this->getScheduler()->scheduleActivity(array_merge($data, [
                                 'id' => $activity->id // Exclude from conflict check
                             ]));
 
@@ -203,28 +254,19 @@ class CalendarWidget extends FullCalendarWidget
                         ->required()
                         ->maxLength(255)
                         ->columnSpan(2),
-                    DateTimePicker::make('date')
+                    DateTimePicker::make('start_date')
                         ->required()
                         ->default(now()),
+                    DateTimePicker::make('end_date')
+                        ->required()
+                        ->default(now()->addHours(1)),
                     Select::make('priority')
                         ->options(Activity::getPriorityOptions())
                         ->default(Activity::PRIORITY_MEDIUM)
                         ->required(),
-                    TextInput::make('duration')
-                        ->numeric()
-                        ->default(60)
-                        ->suffix('minutes')
-                        ->required(),
                     Select::make('category')
-                        ->options([
-                            'work' => 'Work',
-                            'personal' => 'Personal',
-                            'meeting' => 'Meeting',
-                            'appointment' => 'Appointment',
-                            'task' => 'Task',
-                            'other' => 'Other',
-                        ])
-                        ->default('other'),
+                        ->required()
+                        ->options(Activity::getCategoryOptions()),
                     Toggle::make('is_flexible')
                         ->label('Can be rescheduled automatically')
                         ->default(true)

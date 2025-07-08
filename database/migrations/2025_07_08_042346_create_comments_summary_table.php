@@ -11,12 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('rubric_sections', function (Blueprint $table) {
+        Schema::create('comments_summary', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('rubric_id')->constrained('rubrics')->onDelete('cascade');
-            $table->string('name');
-            $table->decimal('total_points', 10, 2)->default(0);
-            $table->integer('order')->default(0);
+            $table->foreignId('project_id')->constrained('projects')->cascadeOnDelete();
+            $table->foreignId('panel_id')->constrained('users');
+            $table->text('comments');
             $table->timestamps();
         });
     }
@@ -26,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('rubric_sections');
+        Schema::dropIfExists('comments_summary');
     }
 };

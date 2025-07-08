@@ -11,7 +11,7 @@ use App\Models\Group;
 use App\Models\Project;
 use App\Models\ProjectGrade;
 use App\Models\Rubric;
-use App\Models\RubricCriterion;
+use App\Models\RubricCriteria;
 use App\Models\User;
 use App\Services\ProjectPredictionService;
 use Filament\Forms;
@@ -125,43 +125,6 @@ class ProjectResource extends Resource
                     ->label('Panelists')
                     ->badge()
                     ->color(fn(string $state): string => $state === 'Complete' ? 'success' : 'danger'),
-                // Add AI Prediction column
-                TextColumn::make('ai_prediction')
-                    ->label('AI Prediction')
-                    ->badge()
-                    ->state(function (Project $record) {
-                        try {
-                            $service = app(ProjectPredictionService::class);
-                            $prediction = $service->predictCompletion($record);
-                            return $prediction['percentage'] . '%';
-                        } catch (\Exception $e) {
-                            return 'N/A';
-                        }
-                    })
-                    ->color(function (Project $record) {
-                        try {
-                            $service = app(ProjectPredictionService::class);
-                            $prediction = $service->predictCompletion($record);
-                            return match ($prediction['risk_level']) {
-                                'low' => 'success',
-                                'medium' => 'warning',
-                                'high' => 'danger',
-                                'critical' => 'danger',
-                                default => 'gray'
-                            };
-                        } catch (\Exception $e) {
-                            return 'gray';
-                        }
-                    })
-                    ->tooltip(function (Project $record) {
-                        try {
-                            $service = app(ProjectPredictionService::class);
-                            $prediction = $service->predictCompletion($record);
-                            return 'Risk Level: ' . ucfirst($prediction['risk_level']);
-                        } catch (\Exception $e) {
-                            return 'Prediction unavailable';
-                        }
-                    }),
                 TextColumn::make('awards'),
                 TextColumn::make('final_grade'),
                 TextColumn::make('deadline')
@@ -178,22 +141,6 @@ class ProjectResource extends Resource
                 Tables\Actions\EditAction::make()
                     ->tooltip('Edit Project')
                     ->hiddenLabel(),
-                // Add AI Prediction Action
-                Action::make('refresh_prediction')
-                    ->tooltip('Refresh AI Prediction')
-                    ->hiddenLabel()
-                    ->icon('heroicon-m-arrow-path')
-                    ->color('info')
-                    ->action(function (Project $record) {
-                        $service = app(ProjectPredictionService::class);
-                        $prediction = $service->predictCompletion($record);
-
-                        Notification::make()
-                            ->title('AI Prediction Updated')
-                            ->body("Completion probability: {$prediction['percentage']}% (Risk: {$prediction['risk_level']})")
-                            ->success()
-                            ->send();
-                    }),
                 Action::make('Grade')
                     ->disabled(fn(Model $project) => !in_array(Auth::id(), $project->panelists ?? []))
                     ->tooltip('Grade Project')
@@ -202,9 +149,9 @@ class ProjectResource extends Resource
                     ->icon('heroicon-m-check-badge')
                     ->form(function () {
                         // Get available rubrics
-                        $rubrics = Rubric::pluck('name', 'id');
+                        $rubrics = Rubric::where('is_active', true)->pluck('name', 'id');
 
-                        $form = [
+                        return [
                             Select::make('rubric_id')
                                 ->label('Select Rubric')
                                 ->options($rubrics)
@@ -215,50 +162,23 @@ class ProjectResource extends Resource
                             Textarea::make('remarks')
                                 ->label('Overall Remarks')
                                 ->rows(3),
+
+                            Forms\Components\Placeholder::make('rubric_grading')
+                                ->visible(fn(callable $get) => filled($get('rubric_id')))
+                                ->content(function (callable $get) {
+                                    $rubricId = $get('rubric_id');
+                                    if (!$rubricId) return '';
+
+                                    $rubric = Rubric::with(['sections.criteria.scaleLevels'])
+                                        ->find($rubricId);
+
+                                    return new \Illuminate\Support\HtmlString(
+                                        view('filament.forms.components.rubric-criteria-grading', [
+                                            'rubric' => $rubric,
+                                        ])->render()
+                                    );
+                                }),
                         ];
-
-                        // Add dynamic criteria fields based on selected rubric
-                        $form[] = Grid::make()
-                            ->visible(fn(callable $get) => filled($get('rubric_id')))
-                            ->schema(function (callable $get) {
-                                $rubricId = $get('rubric_id');
-                                if (!$rubricId) return [];
-
-                                $criteria = RubricCriterion::where('rubric_id', $rubricId)->get();
-                                $fields = [];
-
-                                foreach ($criteria as $criterion) {
-                                    $fields[] = Section::make($criterion->name)
-                                        ->description($criterion->description)
-                                        ->extraAttributes([
-                                            'class' => 'p-4 bg-gray-50 rounded-lg space-y-3',
-                                        ])
-                                        ->schema([
-                                            Grid::make()
-                                                ->schema([
-                                                    TextInput::make("criteria.{$criterion->id}.score")
-                                                        ->label("Score (Max: {$criterion->max_score})")
-                                                        ->helperText("Weight: {$criterion->weight}%")
-                                                        ->numeric()
-                                                        ->minValue(0)
-                                                        ->maxValue($criterion->max_score)
-                                                        ->required()
-                                                        ->columnSpan(1),
-
-                                                    Textarea::make("criteria.{$criterion->id}.remarks")
-                                                        ->label('Remarks')
-                                                        ->rows(2)
-                                                        ->columnSpan(3),
-                                                ])
-                                                ->columns(4),
-                                        ]);
-                                }
-
-                                return $fields;
-                            })
-                            ->columns(1);
-
-                        return $form;
                     })
 
                     ->action(function (array $data, Project $project) {
@@ -266,16 +186,16 @@ class ProjectResource extends Resource
                         $remarks = $data['remarks'] ?? null;
                         $criteriaGrades = $data['criteria'] ?? [];
 
-                        // Create the main project grade record
+                        // Calculate total score from all criteria
                         $totalScore = collect($criteriaGrades)->sum('score');
 
+                        // Create the main project grade record
                         $projectGrade = ProjectGrade::create([
                             'project_id' => $project->id,
                             'rubric_id' => $rubricId,
                             'panel_id' => Auth::id(),
                             'total_score' => $totalScore,
                             'remarks' => $remarks,
-                            'graded_at' => now(),
                         ]);
 
                         // Create individual criterion grades
@@ -283,13 +203,12 @@ class ProjectResource extends Resource
                             CriterionGrade::create([
                                 'project_grade_id' => $projectGrade->id,
                                 'rubric_criterion_id' => $criterionId,
-                                'score' => $gradeData['score'],
-                                'remarks' => $gradeData['remarks'] ?? null,
+                                'score' => $gradeData['score'] ?? 0,
+                                'remarks' => $gradeData['comments'] ?? null,
                             ]);
                         }
 
-                        // Update the project's final grade if needed
-                        // This will depend on your logic - could be the latest grade, an average, etc.
+                        // Update the project's final grade
                         $project->update([
                             'final_grade' => ProjectGrade::where('project_id', $project->id)
                                 ->avg('total_score'),
@@ -297,6 +216,7 @@ class ProjectResource extends Resource
 
                         Notification::make()
                             ->title('Project graded successfully')
+                            ->body("Total Score: {$totalScore}")
                             ->success()
                             ->send();
                     })

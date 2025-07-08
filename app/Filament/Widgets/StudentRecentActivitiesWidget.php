@@ -19,7 +19,7 @@ class StudentRecentActivitiesWidget extends BaseWidget
         return $table
             ->query(
                 Activity::query()
-                    ->orderBy('date', 'desc')
+                    ->orderBy('start_date', 'desc')
                     ->limit(5)
             )
             ->columns([
@@ -31,7 +31,7 @@ class StudentRecentActivitiesWidget extends BaseWidget
                     ->limit(100)
                     ->wrap(),
 
-                TextColumn::make('date')
+                TextColumn::make('start_date')
                     ->dateTime()
                     ->sortable()
                     ->since(),

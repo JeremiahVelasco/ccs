@@ -8,6 +8,7 @@ use App\Models\Activity;
 use Carbon\Carbon;
 use Filament\Forms;
 use Filament\Forms\Components\DateTimePicker;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
@@ -32,9 +33,30 @@ class ActivityResource extends Resource
         return $form
             ->schema([
                 TextInput::make('title'),
-                DateTimePicker::make('date')
+                Select::make('priority')
+                    ->options(Activity::getPriorityOptions())
+                    ->label('Priority')
+                    ->default(Activity::PRIORITY_MEDIUM)
+                    ->required(),
+                Select::make('category')
+                    ->options(Activity::getCategoryOptions())
+                    ->label('Category')
+                    ->required(),
+                Select::make('is_flexible')
+                    ->label('Can be rescheduled automatically')
+                    ->default(true)
+                    ->options([
+                        true => 'Yes',
+                        false => 'No',
+                    ])
+                    ->label('Flexible')
+                    ->required(),
+                DateTimePicker::make('start_date')
                     ->seconds(false)
-                    ->label('Schedule'),
+                    ->label('Start'),
+                DateTimePicker::make('end_date')
+                    ->seconds(false)
+                    ->label('End'),
                 Textarea::make('description')
                     ->columnSpanFull()
                     ->rows(4),
@@ -46,11 +68,17 @@ class ActivityResource extends Resource
         return $table
             ->striped()
             ->columns([
-                TextColumn::make('date')
+                TextColumn::make('start_date')
                     ->dateTime('M d Y - h:iA')
                     ->description(
                         fn(Model $record): string =>
-                        Carbon::parse($record->date)->diffForHumans()
+                        Carbon::parse($record->start_date)->diffForHumans()
+                    ),
+                TextColumn::make('end_date')
+                    ->dateTime('M d Y - h:iA')
+                    ->description(
+                        fn(Model $record): string =>
+                        Carbon::parse($record->end_date)->diffForHumans()
                     ),
                 TextColumn::make('title'),
                 TextColumn::make('description')

@@ -10,6 +10,9 @@ use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\RepositoryController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\RubricController;
+use App\Http\Controllers\PanelistController;
+use App\Http\Controllers\EvaluationController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -89,4 +92,36 @@ Route::middleware('auth:sanctum')->group(function () {
     // Legacy OpenAI Routes (consider deprecating in favor of Bayesian predictions)
     Route::post('/projects/{projectId}/predict-legacy', [OpenAIController::class, 'predict']);
     Route::post('/projects/predict-legacy', [OpenAIController::class, 'predictAll']);
+
+    // Rubric Management Routes
+    Route::prefix('rubrics')->group(function () {
+        Route::get('/', [RubricController::class, 'index']);
+        Route::post('/', [RubricController::class, 'store']);
+        Route::get('/{id}', [RubricController::class, 'show']);
+        Route::get('/type/{type}', [RubricController::class, 'getByType']);
+    });
+
+    // Panelist Management Routes
+    Route::prefix('panelists')->group(function () {
+        Route::get('/', [PanelistController::class, 'index']);
+        Route::post('/', [PanelistController::class, 'store']);
+        Route::get('/{id}', [PanelistController::class, 'show']);
+        Route::put('/{id}', [PanelistController::class, 'update']);
+        Route::get('/{id}/dashboard', [PanelistController::class, 'getDashboard']);
+    });
+
+    // Evaluation Routes
+    Route::prefix('evaluations')->group(function () {
+        Route::get('/', [EvaluationController::class, 'index']);
+        Route::post('/', [EvaluationController::class, 'store']);
+        Route::get('/{id}', [EvaluationController::class, 'show']);
+        Route::put('/{id}', [EvaluationController::class, 'update']);
+
+        // Panelist-specific evaluation routes
+        Route::get('/panelist/{panelistId}', [EvaluationController::class, 'getForPanelist']);
+        Route::post('/form', [EvaluationController::class, 'createEvaluationForm']);
+
+        // Evaluation summaries
+        Route::get('/summary/{evaluableType}/{evaluableId}', [EvaluationController::class, 'getEvaluationSummary']);
+    });
 });

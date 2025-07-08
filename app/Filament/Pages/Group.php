@@ -3,10 +3,13 @@
 namespace App\Filament\Pages;
 
 use App\Models\Group as GroupModel;
+use App\Models\User;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Notifications\Notification;
 use Filament\Pages\Page;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 
 class Group extends Page
@@ -24,10 +27,14 @@ class Group extends Page
     public $hasGroup = false;
     public $groupInfo = null;
     public $joinMode = false;
+    public $editingRole = null;
+    public $editRoleData = [];
+    public $addingMember = false;
+    public $addMemberData = [];
 
     public function mount(): void
     {
-        $user = auth()->user();
+        $user = Auth::user();
         $group = $user->group;
 
         if ($group) {
@@ -42,7 +49,7 @@ class Group extends Page
             'data.name' => 'required|string|max:255',
         ]);
 
-        $user = auth()->user();
+        $user = Auth::user();
 
         // Check if user already has a group
         if ($user->group) {
@@ -82,7 +89,7 @@ class Group extends Page
             'data.group_code' => 'required|string|exists:groups,group_code',
         ]);
 
-        $user = auth()->user();
+        $user = Auth::user();
 
         // Check if user already has a group
         if ($user->group) {
@@ -121,6 +128,153 @@ class Group extends Page
         $this->groupInfo = $group->load('members');
     }
 
+    public function editRole($memberId)
+    {
+        $user = Auth::user();
+
+        // Only group leader can edit roles
+        if (!$user->isLeader() || $user->group->leader_id !== $user->id) {
+            Notification::make()
+                ->title('Only group leaders can edit member roles')
+                ->danger()
+                ->send();
+            return;
+        }
+
+        $member = User::find($memberId);
+
+        if (!$member || $member->group_id !== $user->group_id) {
+            Notification::make()
+                ->title('Member not found')
+                ->danger()
+                ->send();
+            return;
+        }
+
+        // Don't allow editing the leader's own role
+        if ($member->id === $user->group->leader_id) {
+            Notification::make()
+                ->title('Cannot edit group leader role')
+                ->danger()
+                ->send();
+            return;
+        }
+
+        $this->editingRole = $memberId;
+        $this->editRoleData = [
+            'role' => $member->group_role
+        ];
+    }
+
+    public function updateRole()
+    {
+        $this->validate([
+            'editRoleData.role' => 'required|in:member,co-leader',
+        ]);
+
+        $user = Auth::user();
+        $member = User::find($this->editingRole);
+
+        if (!$member || $member->group_id !== $user->group_id) {
+            Notification::make()
+                ->title('Member not found')
+                ->danger()
+                ->send();
+            return;
+        }
+
+        $member->group_role = $this->editRoleData['role'];
+        $member->save();
+
+        Notification::make()
+            ->title('Member role updated successfully')
+            ->success()
+            ->send();
+
+        $this->cancelEditRole();
+        $this->groupInfo = $this->groupInfo->fresh('members');
+    }
+
+    public function cancelEditRole()
+    {
+        $this->editingRole = null;
+        $this->editRoleData = [];
+    }
+
+    public function startAddingMember()
+    {
+        $user = Auth::user();
+
+        // Only group leader can add members
+        if (!$user->isLeader() || $user->group->leader_id !== $user->id) {
+            Notification::make()
+                ->title('Only group leaders can add members')
+                ->danger()
+                ->send();
+            return;
+        }
+
+        $this->addingMember = true;
+        $this->addMemberData = [];
+    }
+
+    public function addMember()
+    {
+        $this->validate([
+            'addMemberData.user_id' => 'required|exists:users,id',
+        ]);
+
+        $user = Auth::user();
+        $newMember = User::find($this->addMemberData['user_id']);
+
+        // Check if the user is already in a group
+        if ($newMember->group_id) {
+            Notification::make()
+                ->title('This user is already in a group')
+                ->danger()
+                ->send();
+            return;
+        }
+
+        // Check if the user is a student
+        if (!$newMember->isStudent()) {
+            Notification::make()
+                ->title('Only students can be added to groups')
+                ->danger()
+                ->send();
+            return;
+        }
+
+        // Add user to group
+        $newMember->group_id = $user->group_id;
+        $newMember->group_role = 'member';
+        $newMember->save();
+
+        Notification::make()
+            ->title('Member added successfully')
+            ->success()
+            ->send();
+
+        $this->cancelAddMember();
+        $this->groupInfo = $this->groupInfo->fresh('members');
+    }
+
+    public function cancelAddMember()
+    {
+        $this->addingMember = false;
+        $this->addMemberData = [];
+    }
+
+    public function getAvailableStudentsProperty()
+    {
+        return User::students()
+            ->whereNull('group_id')
+            ->get()
+            ->mapWithKeys(function ($user) {
+                return [$user->id => $user->name . ' (' . $user->email . ')'];
+            });
+    }
+
     public function createProject()
     {
         return redirect()->route('filament.admin.pages.project');
@@ -128,7 +282,7 @@ class Group extends Page
 
     public function leaveGroup()
     {
-        $user = auth()->user();
+        $user = Auth::user();
 
         // Check if user has a group
         if (!$user->group) {
@@ -201,6 +355,6 @@ class Group extends Page
 
     public static function canAccess(): bool
     {
-        return auth()->user()->isStudent();
+        return Auth::user()->isStudent();
     }
 }

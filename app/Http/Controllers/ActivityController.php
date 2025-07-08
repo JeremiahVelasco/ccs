@@ -16,7 +16,7 @@ class ActivityController extends Controller
     {
         try {
             $activities = Activity::query()
-                ->orderBy('date', 'desc')
+                ->orderBy('start_date', 'desc')
                 ->get();
 
             return response()->json([
@@ -49,7 +49,8 @@ class ActivityController extends Controller
             $validated = $request->validate([
                 'title' => 'required|string|max:255',
                 'description' => 'required|string',
-                'date' => 'required|date',
+                'start_date' => 'required|date',
+                'end_date' => 'required|date',
             ]);
 
             $activity = Activity::create($validated);
@@ -110,7 +111,8 @@ class ActivityController extends Controller
             $validated = $request->validate([
                 'title' => 'sometimes|required|string|max:255',
                 'description' => 'sometimes|required|string',
-                'date' => 'sometimes|required|date',
+                'start_date' => 'sometimes|required|date',
+                'end_date' => 'sometimes|required|date',
             ]);
 
             $activity = Activity::findOrFail($id);

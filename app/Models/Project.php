@@ -141,11 +141,6 @@ class Project extends Model
         return count($this->panelists ?? []) === 3;
     }
 
-    public function grades()
-    {
-        return $this->hasMany(ProjectGrade::class);
-    }
-
     public function tasks()
     {
         return $this->hasMany(Task::class);

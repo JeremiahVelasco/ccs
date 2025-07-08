@@ -25,11 +25,11 @@ class FacultyProjectsOverviewWidget extends StatsOverviewWidget
         // Active projects in system (for context)
         $activeProjects = Project::whereIn('status', ['In Progress', 'For Review'])->count();
 
-        // Projects pending grading
-        $pendingGrading = Project::whereJsonContains('panelists', $user->id)
-            ->whereDoesntHave('grades', function ($query) use ($user) {
-                $query->where('panel_id', $user->id);
-            })->count();
+        // // Projects pending grading
+        // $pendingGrading = Project::whereJsonContains('panelists', $user->id)
+        //     ->whereDoesntHave('grades', function ($query) use ($user) {
+        //         $query->where('panel_id', $user->id);
+        //     })->count();
 
         return [
             Stat::make('Advised Projects', $advisedProjects)
@@ -42,10 +42,10 @@ class FacultyProjectsOverviewWidget extends StatsOverviewWidget
                 ->descriptionIcon('heroicon-m-clipboard-document-check')
                 ->color('info'),
 
-            Stat::make('Pending Grades', $pendingGrading)
-                ->description('Projects awaiting your evaluation')
-                ->descriptionIcon('heroicon-m-exclamation-triangle')
-                ->color($pendingGrading > 0 ? 'warning' : 'success'),
+            // Stat::make('Pending Grades', $pendingGrading)
+            //     ->description('Projects awaiting your evaluation')
+            //     ->descriptionIcon('heroicon-m-exclamation-triangle')
+            //     ->color($pendingGrading > 0 ? 'warning' : 'success'),
 
             Stat::make('Active Projects', $activeProjects)
                 ->description('All active projects in system')

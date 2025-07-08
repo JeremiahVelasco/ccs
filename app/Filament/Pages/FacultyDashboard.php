@@ -30,7 +30,7 @@ class FacultyDashboard extends Page
         return [
             \App\Filament\Widgets\FacultyProjectsOverviewWidget::class,
             \App\Filament\Widgets\FacultyAnalyticsWidget::class,
-            \App\Filament\Widgets\FacultyGradingPendingWidget::class,
+            // \App\Filament\Widgets\FacultyGradingPendingWidget::class,
             \App\Filament\Widgets\FacultyAdvisedGroupsWidget::class,
             \App\Filament\Widgets\FacultyPanelistAssignmentsWidget::class,
             \App\Filament\Widgets\CalendarWidget::class,

@@ -16,20 +16,18 @@ class Activity extends Model
     protected $fillable = [
         'title',
         'description',
-        'date',
+        'start_date',
         'end_date',
         'priority',
-        'duration', // in minutes
         'is_flexible', // can be rescheduled automatically
         'category',
     ];
 
     protected $casts = [
-        'date' => 'datetime',
+        'start_date' => 'datetime',
         'end_date' => 'datetime',
         'is_flexible' => 'boolean',
         'priority' => 'integer',
-        'duration' => 'integer',
     ];
 
     // Priority levels
@@ -48,23 +46,26 @@ class Activity extends Model
         ];
     }
 
+    public static function getCategoryOptions(): array
+    {
+        return [
+            'meeting' => 'Meeting',
+            'event' => 'Event',
+            'defense' => 'Defense',
+            'presentation' => 'Presentation',
+            'evaluation' => 'Evaluation',
+            'other' => 'Other',
+        ];
+    }
+
     public function getPriorityLabelAttribute(): string
     {
         return self::getPriorityOptions()[$this->priority] ?? 'Unknown';
     }
 
-    public function getEndDateAttribute($value): ?Carbon
+    public function getDurationAttribute(): int
     {
-        if ($value) {
-            return Carbon::parse($value);
-        }
-
-        // If no end_date is set, calculate from start date + duration
-        if ($this->date && $this->duration) {
-            return $this->date->addMinutes($this->duration);
-        }
-
-        return null;
+        return $this->start_date->diffInMinutes($this->end_date);
     }
 
     /**
@@ -76,7 +77,7 @@ class Activity extends Model
             return false;
         }
 
-        return $this->date < $other->end_date && $this->end_date > $other->date;
+        return $this->start_date < $other->end_date && $this->end_date > $other->start_date;
     }
 
     /**
@@ -87,11 +88,10 @@ class Activity extends Model
         $query = self::where(function ($q) use ($startDate, $endDate) {
             $q->where(function ($subQ) use ($startDate, $endDate) {
                 // Activity starts before our end and ends after our start
-                $subQ->where('date', '<', $endDate)
-                    ->where(function ($endQ) use ($startDate) {
-                        $endQ->where('end_date', '>', $startDate)
-                            ->orWhereRaw('DATE_ADD(date, INTERVAL duration MINUTE) > ?', [$startDate]);
-                    });
+                $subQ->where('start_date', '<', $endDate)
+                    ->where('end_date', '>', $startDate)
+                    ->whereNotNull('start_date')
+                    ->whereNotNull('end_date');
             });
         });
 
@@ -156,22 +156,22 @@ class Activity extends Model
             return $rescheduled;
         }
 
-        $conflicts = self::findConflicts($this->date, $this->end_date, $this->id)
+        $conflicts = self::findConflicts($this->start_date, $this->end_date, $this->id)
             ->where('priority', '<', $this->priority)
             ->where('is_flexible', true)
             ->get();
 
         foreach ($conflicts as $conflict) {
             $newSlot = self::findBestTimeSlot(
-                $conflict->date,
+                $conflict->start_date,
                 $conflict->duration,
                 $conflict->priority
             );
 
             if ($newSlot) {
-                $oldDate = $conflict->date->copy();
+                $oldDate = $conflict->start_date->copy();
                 $conflict->update([
-                    'date' => $newSlot,
+                    'start_date' => $newSlot,
                     'end_date' => $newSlot->copy()->addMinutes($conflict->duration),
                 ]);
 
@@ -207,7 +207,7 @@ class Activity extends Model
      */
     public function scopeWithinDateRange(Builder $query, Carbon $start, Carbon $end): Builder
     {
-        return $query->where('date', '>=', $start)
-            ->where('date', '<=', $end);
+        return $query->where('start_date', '>=', $start)
+            ->where('end_date', '<=', $end);
     }
 }

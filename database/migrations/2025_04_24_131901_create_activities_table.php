@@ -12,18 +12,19 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('activities', function (Blueprint $table) {
+            $table->id();
             $table->string('title');
             $table->text('description')->nullable();
-            $table->dateTime('date')->nullable();
+            $table->dateTime('start_date')->nullable();
             $table->dateTime('end_date')->nullable();
             $table->integer('priority')->default(2); // 1=Low, 2=Medium, 3=High, 4=Urgent
-            $table->integer('duration')->default(60); // Duration in minutes
             $table->boolean('is_flexible')->default(true); // Can be rescheduled automatically
             $table->string('category')->default('other');
+            $table->timestamps();
 
             // Add indexes for better performance
-            $table->index(['date', 'end_date']);
-            $table->index(['priority', 'date']);
+            $table->index(['start_date', 'end_date']);
+            $table->index(['priority']);
             $table->index(['is_flexible', 'priority']);
         });
     }
