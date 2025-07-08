@@ -2,6 +2,7 @@
 
 namespace App\Filament\Pages;
 
+use App\Filament\Widgets\CalendarWidget;
 use Filament\Pages\Dashboard\Concerns\HasFiltersForm;
 use Filament\Pages\Page;
 use Illuminate\Support\Facades\Auth;
@@ -32,6 +33,7 @@ class StudentDashboard extends Page
             \App\Filament\Widgets\StudentProgressWidget::class,
             \App\Filament\Widgets\StudentRecentActivitiesWidget::class,
             \App\Filament\Widgets\StudentTasksWidget::class,
+            CalendarWidget::class,
         ];
     }
 

@@ -14,6 +14,7 @@ use Filament\Forms\Components\Toggle;
 use Filament\Forms\Form;
 use Filament\Notifications\Notification;
 use Filament\Widgets\Widget;
+use Illuminate\Support\Facades\Auth;
 use Saade\FilamentFullCalendar\Actions;
 use Saade\FilamentFullCalendar\Widgets\FullCalendarWidget;
 
@@ -36,7 +37,7 @@ class CalendarWidget extends FullCalendarWidget
                     'title' => $activity->title,
                     'start' => $activity->start_date,
                     'end' => $activity->end_date,
-                    'url' => ActivityResource::getUrl(name: 'edit', parameters: ['record' => $activity]),
+                    'url' => ActivityResource::getUrl(name: 'view', parameters: ['record' => $activity]),
                     'shouldOpenUrlInNewTab' => false,
                     'backgroundColor' => $this->getPriorityColor($activity->priority),
                     'borderColor' => $this->getPriorityColor($activity->priority),
@@ -54,6 +55,11 @@ class CalendarWidget extends FullCalendarWidget
 
     protected function headerActions(): array
     {
+        // Students cannot create events
+        if (Auth::user()?->isStudent()) {
+            return [];
+        }
+
         return [
             Actions\CreateAction::make()
                 ->mountUsing(
@@ -165,6 +171,11 @@ class CalendarWidget extends FullCalendarWidget
 
     protected function modalActions(): array
     {
+        // Students cannot edit or delete events
+        if (Auth::user()?->isStudent()) {
+            return [];
+        }
+
         return [
             Actions\EditAction::make()
                 ->mountUsing(

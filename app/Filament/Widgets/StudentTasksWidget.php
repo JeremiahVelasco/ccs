@@ -2,6 +2,7 @@
 
 namespace App\Filament\Widgets;
 
+use App\Filament\Clusters\Tasks\Resources\TaskResource;
 use App\Models\Task;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -12,7 +13,7 @@ use Filament\Tables\Columns\BadgeColumn;
 
 class StudentTasksWidget extends BaseWidget
 {
-    protected static ?string $heading = 'My Current Tasks';
+    protected static ?string $heading = 'Tasks';
 
     protected int | string | array $columnSpan = 'full';
 
@@ -69,7 +70,7 @@ class StudentTasksWidget extends BaseWidget
                     ->icon('heroicon-m-eye')
                     ->url(
                         fn(Task $record): string =>
-                        route('filament.admin.pages.project') . '?tab=tasks'
+                        TaskResource::getUrl('edit', ['record' => $record->id]),
                     ),
             ])
             ->emptyStateHeading('No tasks assigned')

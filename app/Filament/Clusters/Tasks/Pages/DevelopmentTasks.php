@@ -6,6 +6,7 @@ use App\Filament\Clusters\Tasks;
 use App\Models\Task;
 use App\Models\User;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Auth;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Hidden;
@@ -44,7 +45,7 @@ class DevelopmentTasks extends Page implements HasForms, HasTable
     public function table(Table $table): Table
     {
         return $table
-            ->query(Task::development()->where('project_id', auth()->user()->group->project->id))
+            ->query(Task::development()->where('project_id', Auth::user()->group->project->id))
             ->reorderable('sort')
             ->columns([
                 TextInputColumn::make('title'),
@@ -63,13 +64,13 @@ class DevelopmentTasks extends Page implements HasForms, HasTable
                     ->tooltip('Edit Task')
                     ->form([
                         Hidden::make('project_id')
-                            ->default(auth()->user()->group->id),
+                            ->default(Auth::user()->group->id),
                         TextInput::make('title')
                             ->required()
                             ->maxLength(255),
                         Select::make('assigned_to')
                             ->label('Assigned To')
-                            ->options(User::query()->where('group_id', auth()->user()->group_id)->pluck('name', 'id')->toArray())
+                            ->options(User::query()->where('group_id', Auth::user()->group_id)->pluck('name', 'id')->toArray())
                             ->searchable()
                             ->multiple(),
                         Textarea::make('description'),
@@ -93,13 +94,13 @@ class DevelopmentTasks extends Page implements HasForms, HasTable
                 CreateAction::make()
                     ->form([
                         Hidden::make('project_id')
-                            ->default(auth()->user()->group->id),
+                            ->default(Auth::user()->group->id),
                         TextInput::make('title')
                             ->required()
                             ->maxLength(255),
                         Select::make('assigned_to')
                             ->label('Assigned To')
-                            ->options(User::query()->where('group_id', auth()->user()->group_id)->pluck('name', 'id')->toArray())
+                            ->options(User::query()->where('group_id', Auth::user()->group_id)->pluck('name', 'id')->toArray())
                             ->searchable()
                             ->multiple(),
                         Textarea::make('description'),
