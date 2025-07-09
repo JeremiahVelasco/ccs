@@ -56,6 +56,6 @@ class FacultyProjectsOverviewWidget extends StatsOverviewWidget
 
     protected function getColumns(): int
     {
-        return 4;
+        return 3;
     }
 }

@@ -12,6 +12,17 @@ export default {
         './resources/**/*.vue',
         './resources/views/livewire/**/*.blade.php',
     ],
+    safelist: [
+        'bg-red-200',
+        'bg-green-600',
+        'hover:bg-green-700',
+        'focus:ring-green-500',
+        'bg-green-500',
+        'bg-green-800',
+        'text-green-600',
+        'text-green-700',
+        'text-green-800',
+    ],
     theme: {
         extend: {
             fontFamily: {

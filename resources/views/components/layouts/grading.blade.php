@@ -21,19 +21,14 @@
                 <div class="flex justify-between items-center h-16">
                     <div class="flex items-center">
                         <h1 class="text-xl font-semibold text-gray-900 dark:text-white">
-                            {{ config('app.name', 'Laravel') }} - Project Grading
+                            Project Grading
                         </h1>
                     </div>
                     <div class="flex items-center space-x-4">
-                        @auth
-                            <div class="text-sm text-gray-600 dark:text-gray-400">
-                                Welcome, {{ Auth::user()->name }}
-                            </div>
-                            <a href="{{ url('/admin') }}" 
-                               class="text-sm text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300">
-                                Back to Dashboard
-                            </a>
-                        @endauth
+                        <a href="{{ url('/') }}" 
+                            class="text-sm text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300">
+                            Back to Dashboard
+                        </a>
                     </div>
                 </div>
             </div>

@@ -10,7 +10,7 @@
                     Evaluate project criteria with weighted scoring (1-5 scale)
                 </p>
             </div>
-            <div class="flex items-center space-x-4">
+            <div class="flex flex-col items-center space-x-4">
                 <div class="text-right">
                     <div class="text-sm text-gray-600 dark:text-gray-400">Summary Score</div>
                     <div class="text-2xl font-bold text-primary-600 dark:text-primary-400" id="headerSummaryScore">
@@ -21,20 +21,20 @@
                     <div class="text-sm text-gray-600 dark:text-gray-400">Average Score</div>
                     <div class="text-2xl font-bold text-primary-600 dark:text-primary-400" id="totalScore">
                                                         @php
-                                    $criteriaValues = collect($criteria['detailed'])->keys()->map(fn($key) => floatval($data[$key] ?? 0))->filter(fn($val) => $val > 0);
-                                    $avgScore = $criteriaValues->count() > 0 ? $criteriaValues->avg() : 0;
+$criteriaValues = collect($criteria['detailed'])->keys()->map(fn($key) => floatval($data[$key] ?? 0))->filter(fn($val) => $val > 0);
+$avgScore = $criteriaValues->count() > 0 ? $criteriaValues->avg() : 0;
                                 @endphp
-                        {{ number_format($avgScore, 2) }}/5.0
+                        {{ number_format($avgScore, 2) }}
                     </div>
                 </div>
                 <div class="text-right">
                     <div class="text-sm text-gray-600 dark:text-gray-400">Weighted Score</div>
                     <div class="text-xl font-semibold text-gray-900 dark:text-white" id="weightedScore">
                         @php
-                            $weightedScore = 0;
-                            foreach($criteria['detailed'] as $key => $criterion) {
-                                $weightedScore += floatval($data[$key] ?? 0) * $criterion['weight'];
-                            }
+$weightedScore = 0;
+foreach ($criteria['detailed'] as $key => $criterion) {
+    $weightedScore += floatval($data[$key] ?? 0) * $criterion['weight'];
+}
                         @endphp
                         {{ number_format($weightedScore, 1) }}
                     </div>
@@ -210,17 +210,6 @@
             </div>
         </div>
 
-        <!-- Remarks Section -->
-        <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-6">
-            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-4">Remarks</h3>
-            <textarea 
-                wire:model="data.remarks" 
-                rows="3"
-                placeholder="Optional remarks..."
-                class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500 dark:bg-gray-700 dark:text-white"
-            ></textarea>
-        </div>
-
         <!-- Summary Section -->
         <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-6">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -236,10 +225,10 @@
                             <span class="text-sm text-gray-600 dark:text-gray-400">Weighted Score:</span>
                             <span class="text-lg font-bold text-primary-600 dark:text-primary-400">
                                 @php
-                                    $weightedScore = 0;
-                                    foreach($criteria['detailed'] as $key => $criterion) {
-                                        $weightedScore += floatval($data[$key] ?? 0) * $criterion['weight'];
-                                    }
+$weightedScore = 0;
+foreach ($criteria['detailed'] as $key => $criterion) {
+    $weightedScore += floatval($data[$key] ?? 0) * $criterion['weight'];
+}
                                 @endphp
                                 {{ number_format($weightedScore) }}
                             </span>
@@ -248,8 +237,8 @@
                             <span class="text-sm text-gray-600 dark:text-gray-400">Average Score:</span>
                             <span class="text-lg font-bold text-primary-600 dark:text-primary-400">
                                                         @php
-                            $criteriaValues = collect($criteria['detailed'])->keys()->map(fn($key) => floatval($data[$key] ?? 0))->filter(fn($val) => $val > 0);
-                            $avgScore = $criteriaValues->count() > 0 ? $criteriaValues->avg() : 0;
+$criteriaValues = collect($criteria['detailed'])->keys()->map(fn($key) => floatval($data[$key] ?? 0))->filter(fn($val) => $val > 0);
+$avgScore = $criteriaValues->count() > 0 ? $criteriaValues->avg() : 0;
                         @endphp
                                 {{ number_format($avgScore, 2) }}
                             </span>
@@ -262,9 +251,9 @@
                     <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Progress</h3>
                     <div class="space-y-2">
                         @php
-                            $completedCount = collect($criteria['detailed'])->keys()->filter(fn($key) => floatval($data[$key] ?? 0) > 0)->count();
-                            $totalCriteria = count($criteria['detailed']);
-                            $progress = $totalCriteria > 0 ? ($completedCount / $totalCriteria) * 100 : 0;
+$completedCount = collect($criteria['detailed'])->keys()->filter(fn($key) => floatval($data[$key] ?? 0) > 0)->count();
+$totalCriteria = count($criteria['detailed']);
+$progress = $totalCriteria > 0 ? ($completedCount / $totalCriteria) * 100 : 0;
                         @endphp
                         <div class="flex items-center justify-between">
                             <span class="text-sm text-gray-600 dark:text-gray-400">Completed:</span>
@@ -279,17 +268,25 @@
                             <span class="text-sm text-gray-600 dark:text-gray-400">Grade:</span>
                             <span class="text-lg font-bold text-primary-600 dark:text-primary-400">
                                 @php
-                                    $criteriaValues = collect($criteria['detailed'])->keys()->map(fn($key) => floatval($data[$key] ?? 0))->filter(fn($val) => $val > 0);
-                                    $avgScore = $criteriaValues->count() > 0 ? $criteriaValues->avg() : 0;
-                                    $gradeLetter = '-';
-                                    if ($avgScore >= 4.5) $gradeLetter = 'A+';
-                                    elseif ($avgScore >= 4.0) $gradeLetter = 'A';
-                                    elseif ($avgScore >= 3.5) $gradeLetter = 'B+';
-                                    elseif ($avgScore >= 3.0) $gradeLetter = 'B';
-                                    elseif ($avgScore >= 2.5) $gradeLetter = 'C+';
-                                    elseif ($avgScore >= 2.0) $gradeLetter = 'C';
-                                    elseif ($avgScore >= 1.5) $gradeLetter = 'D';
-                                    elseif ($avgScore >= 1.0) $gradeLetter = 'F';
+$criteriaValues = collect($criteria['detailed'])->keys()->map(fn($key) => floatval($data[$key] ?? 0))->filter(fn($val) => $val > 0);
+$avgScore = $criteriaValues->count() > 0 ? $criteriaValues->avg() : 0;
+$gradeLetter = '-';
+if ($avgScore >= 4.5)
+    $gradeLetter = 'A+';
+elseif ($avgScore >= 4.0)
+    $gradeLetter = 'A';
+elseif ($avgScore >= 3.5)
+    $gradeLetter = 'B+';
+elseif ($avgScore >= 3.0)
+    $gradeLetter = 'B';
+elseif ($avgScore >= 2.5)
+    $gradeLetter = 'C+';
+elseif ($avgScore >= 2.0)
+    $gradeLetter = 'C';
+elseif ($avgScore >= 1.5)
+    $gradeLetter = 'D';
+elseif ($avgScore >= 1.0)
+    $gradeLetter = 'F';
                                 @endphp
                                 {{ $gradeLetter }}
                             </span>
@@ -300,13 +297,19 @@
         </div>
 
         <!-- Submit Button -->
-        <div class="flex justify-end space-x-4">
+        <div class="flex justify-end gap-2">
             <a href="{{ url('/projects') }}" 
-               class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-600">
+                class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-white border border-gray-300 rounded-md shadow-sm hover:bg-red-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-600"
+                style="background-color: #ef4444 !important; border-color: #ef4444 !important;"
+                onmouseover="this.style.backgroundColor='#f11f1f'"
+                onmouseout="this.style.backgroundColor='#ef4444'">
                 Cancel
             </a>
             <button type="submit" 
-                    class="px-4 py-2 text-sm font-medium text-white bg-green-600 border border-transparent rounded-md shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                class="px-4 py-2 text-sm font-medium text-white bg-green-700 border border-transparent rounded-md shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                style="background-color: #15803d !important; border-color: #059669 !important;"
+                onmouseover="this.style.backgroundColor='#047857'"
+                onmouseout="this.style.backgroundColor='#059669'">
                 Save Grade
             </button>
         </div>

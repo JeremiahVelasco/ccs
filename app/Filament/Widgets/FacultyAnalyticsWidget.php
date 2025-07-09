@@ -10,7 +10,7 @@ class FacultyAnalyticsWidget extends ChartWidget
 {
     protected static ?string $heading = 'Project Status Distribution';
 
-    protected int | string | array $columnSpan = 1;
+    protected int | string | array $columnSpan = 'full';
 
     protected function getData(): array
     {

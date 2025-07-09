@@ -14,8 +14,6 @@ class FacultyPanelistAssignmentsWidget extends BaseWidget
 {
     protected static ?string $heading = 'My Panelist Assignments';
 
-    protected int | string | array $columnSpan = 'full';
-
     public function table(Table $table): Table
     {
         $user = Auth::user();
