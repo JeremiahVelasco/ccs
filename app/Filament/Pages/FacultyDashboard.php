@@ -32,7 +32,7 @@ class FacultyDashboard extends Page
             \App\Filament\Widgets\FacultyAdvisedGroupsWidget::class,
             \App\Filament\Widgets\FacultyPanelistAssignmentsWidget::class,
             \App\Filament\Widgets\CalendarWidget::class,
-            \App\Filament\Widgets\FacultyAnalyticsWidget::class,
+            // \App\Filament\Widgets\FacultyAnalyticsWidget::class,
         ];
     }
 

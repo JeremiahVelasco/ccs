@@ -34,10 +34,10 @@ class GradingComponent extends Component
         $this->project = $project;
         $this->panelist = Auth::user();
 
-        // Check if user can grade this project
-        if (!$this->getGradingService()->canGradeProject($this->project, $this->panelist)) {
-            abort(403, 'You are not authorized to grade this project.');
-        }
+        // // Check if user can grade this project
+        // if (!$this->getGradingService()->canGradeProject($this->project, $this->panelist)) {
+        //     abort(403, 'You are not authorized to grade this project.');
+        // }
 
         // Load existing evaluation if any
         $existingEvaluation = $this->getGradingService()->getExistingEvaluation($this->project, $this->panelist);
