@@ -6,13 +6,16 @@ use App\Filament\Resources\ProjectResource\Pages;
 use App\Filament\Resources\ProjectResource\RelationManagers;
 use App\Filament\Resources\ProjectResource\RelationManagers\DevelopmentTasksRelationManager;
 use App\Filament\Resources\ProjectResource\RelationManagers\DocumentationTasksRelationManager;
+
 use App\Models\CriterionGrade;
 use App\Models\Group;
 use App\Models\Project;
 use App\Models\ProjectGrade;
+use App\Models\GroupRubricEvaluation;
 use App\Models\Rubric;
 use App\Models\RubricCriteria;
 use App\Models\User;
+use App\Services\GradingService;
 use App\Services\ProjectPredictionService;
 use Filament\Forms;
 use Filament\Forms\Components\FileUpload;
@@ -38,6 +41,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 
 class ProjectResource extends Resource
@@ -120,19 +124,42 @@ class ProjectResource extends Resource
                     ->badge()
                     ->description(fn(Project $record) => round($record->progress() * 100) . '%'),
                 TextColumn::make('title')
+                    ->searchable()
                     ->description(fn(Project $record) => $record->group->name),
                 TextColumn::make('panelist_status')
                     ->label('Panelists')
                     ->badge()
                     ->color(fn(string $state): string => $state === 'Complete' ? 'success' : 'danger'),
                 TextColumn::make('awards'),
-                TextColumn::make('final_grade'),
+                TextColumn::make('final_grade')
+                    ->numeric(2)
+                    ->sortable(),
                 TextColumn::make('deadline')
                     ->label('Deadline')
                     ->date('d-m-Y'),
             ])
             ->filters([
-                //
+                Tables\Filters\SelectFilter::make('panelist_status')
+                    ->options([
+                        'Complete' => 'Complete',
+                        'Incomplete' => 'Incomplete',
+                    ])
+                    ->label('Panelists Status'),
+                Tables\Filters\SelectFilter::make('awards')
+                    ->options([
+                        '🏆 Best Capstone' => '🏆 Best Capstone',
+                        '💡 Most Innovative' => '💡 Most Innovative',
+                        '🖥️ Best Web App' => '🖥️ Best Web App',
+                        '📱 Best Mobile App' => '📱 Best Mobile App',
+                    ])
+                    ->label('Awards'),
+                Tables\Filters\SelectFilter::make('status')
+                    ->options([
+                        'In Progress' => 'In Progress',
+                        'For Review' => 'For Review',
+                        'Done' => 'Done',
+                    ])
+                    ->label('Status'),
             ])
             ->actions([
                 Tables\Actions\ViewAction::make()
@@ -142,84 +169,13 @@ class ProjectResource extends Resource
                     ->tooltip('Edit Project')
                     ->hiddenLabel(),
                 Action::make('Grade')
-                    ->disabled(fn(Model $project) => !in_array(Auth::id(), $project->panelists ?? []))
+                    ->disabled(fn(Model $project) => !app(GradingService::class)->canGradeProject($project, Auth::user()))
                     ->tooltip('Grade Project')
                     ->hiddenLabel()
                     ->color('warning')
                     ->icon('heroicon-m-check-badge')
-                    ->form(function () {
-                        // Get available rubrics
-                        $rubrics = Rubric::where('is_active', true)->pluck('name', 'id');
-
-                        return [
-                            Select::make('rubric_id')
-                                ->label('Select Rubric')
-                                ->options($rubrics)
-                                ->required()
-                                ->reactive()
-                                ->afterStateUpdated(fn(callable $set) => $set('criteria', [])),
-
-                            Textarea::make('remarks')
-                                ->label('Overall Remarks')
-                                ->rows(3),
-
-                            Forms\Components\Placeholder::make('rubric_grading')
-                                ->visible(fn(callable $get) => filled($get('rubric_id')))
-                                ->content(function (callable $get) {
-                                    $rubricId = $get('rubric_id');
-                                    if (!$rubricId) return '';
-
-                                    $rubric = Rubric::with(['sections.criteria.scaleLevels'])
-                                        ->find($rubricId);
-
-                                    return new \Illuminate\Support\HtmlString(
-                                        view('filament.forms.components.rubric-criteria-grading', [
-                                            'rubric' => $rubric,
-                                        ])->render()
-                                    );
-                                }),
-                        ];
-                    })
-
-                    ->action(function (array $data, Project $project) {
-                        $rubricId = $data['rubric_id'];
-                        $remarks = $data['remarks'] ?? null;
-                        $criteriaGrades = $data['criteria'] ?? [];
-
-                        // Calculate total score from all criteria
-                        $totalScore = collect($criteriaGrades)->sum('score');
-
-                        // Create the main project grade record
-                        $projectGrade = ProjectGrade::create([
-                            'project_id' => $project->id,
-                            'rubric_id' => $rubricId,
-                            'panel_id' => Auth::id(),
-                            'total_score' => $totalScore,
-                            'remarks' => $remarks,
-                        ]);
-
-                        // Create individual criterion grades
-                        foreach ($criteriaGrades as $criterionId => $gradeData) {
-                            CriterionGrade::create([
-                                'project_grade_id' => $projectGrade->id,
-                                'rubric_criterion_id' => $criterionId,
-                                'score' => $gradeData['score'] ?? 0,
-                                'remarks' => $gradeData['comments'] ?? null,
-                            ]);
-                        }
-
-                        // Update the project's final grade
-                        $project->update([
-                            'final_grade' => ProjectGrade::where('project_id', $project->id)
-                                ->avg('total_score'),
-                        ]);
-
-                        Notification::make()
-                            ->title('Project graded successfully')
-                            ->body("Total Score: {$totalScore}")
-                            ->success()
-                            ->send();
-                    })
+                    ->url(fn(Model $project) => route('grading.component', $project))
+                    ->openUrlInNewTab()
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
