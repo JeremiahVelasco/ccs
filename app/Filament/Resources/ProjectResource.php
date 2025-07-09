@@ -122,7 +122,7 @@ class ProjectResource extends Resource
             ->columns([
                 TextColumn::make('status')
                     ->badge()
-                    ->description(fn(Project $record) => round($record->progress() * 100) . '%'),
+                    ->description(fn(Project $record) => round($record->progressAttribute() * 100) . '%'),
                 TextColumn::make('title')
                     ->searchable()
                     ->description(fn(Project $record) => $record->group->name),

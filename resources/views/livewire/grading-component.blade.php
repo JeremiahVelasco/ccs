@@ -1,15 +1,39 @@
 <div class="space-y-6 w-full">
-    <!-- Header Section -->
-    <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-6">
-        <div class="flex items-center justify-between">
-            <div>
-                <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
-                    Group Grading
-                </h1>
-                <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                    Evaluate project criteria with weighted scoring (1-5 scale)
-                </p>
-            </div>
+    <!-- Grading Mode Toggle -->
+    <div class="flex justify-center mb-6">
+        <div class="bg-gray-100 dark:bg-gray-700 p-1 rounded-lg">
+            <button 
+                onclick="showGroupGrading()"
+                id="groupGradingBtn"
+                class="grading-btn active px-6 py-2 text-sm font-medium rounded-md transition-all duration-200"
+                style="background-color: #059669; color: white;"
+            >
+                Group Grading
+            </button>
+            <button 
+                onclick="showIndividualGrading()"
+                id="individualGradingBtn"
+                class="grading-btn px-6 py-2 text-sm font-medium rounded-md transition-all duration-200"
+                style="background-color: transparent; color: white;"
+            >
+                Individual Grading
+            </button>
+        </div>
+    </div>
+
+    <!-- Group Grading Component -->
+    <div id="groupGradingComponent" class="grading-component space-y-6">
+        <!-- Header Section -->
+        <div class="bg-white dark:bg-gray-800 shadow-sm rounded-lg p-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-900 dark:text-white">
+                        Group Grading
+                    </h1>
+                    <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                        Evaluate project criteria with weighted scoring (1-5 scale)
+                    </p>
+                </div>
             <div class="flex flex-col items-center space-x-4">
                 <div class="text-right">
                     <div class="text-sm text-gray-600 dark:text-gray-400">Summary Score</div>
@@ -314,4 +338,51 @@ elseif ($avgScore >= 1.0)
             </button>
         </div>
     </form>
-</div> 
+    </div>
+
+    <!-- Individual Grading Component -->
+    <div id="individualGradingComponent" class="grading-component" style="display: none;">
+        @livewire('individual-grading-component', ['project' => $project])
+    </div>
+</div>
+
+<script>
+    function showGroupGrading() {
+        document.getElementById('groupGradingComponent').style.display = 'block';
+        document.getElementById('individualGradingComponent').style.display = 'none';
+        
+        // Update button states
+        const groupBtn = document.getElementById('groupGradingBtn');
+        const individualBtn = document.getElementById('individualGradingBtn');
+        
+        groupBtn.classList.add('active');
+        groupBtn.style.backgroundColor = '#059669';
+        groupBtn.style.color = 'white';
+        
+        individualBtn.classList.remove('active');
+        individualBtn.style.backgroundColor = 'transparent';
+        individualBtn.style.color = '#6b7280';
+    }
+
+    function showIndividualGrading() {
+        document.getElementById('groupGradingComponent').style.display = 'none';
+        document.getElementById('individualGradingComponent').style.display = 'block';
+        
+        // Update button states
+        const groupBtn = document.getElementById('groupGradingBtn');
+        const individualBtn = document.getElementById('individualGradingBtn');
+        
+        groupBtn.classList.remove('active');
+        groupBtn.style.backgroundColor = 'transparent';
+        groupBtn.style.color = '#6b7280';
+        
+        individualBtn.classList.add('active');
+        individualBtn.style.backgroundColor = '#059669';
+        individualBtn.style.color = 'white';
+    }
+
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        showGroupGrading(); // Default to group grading
+    });
+</script> 

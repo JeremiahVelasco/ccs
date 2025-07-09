@@ -97,7 +97,7 @@ class Project extends Model
         return $documentationTasks;
     }
 
-    public function progress()
+    public function progressAttribute()
     {
         $totalTasks = $this->tasks()->count();
         $completedTasks = $this->tasks()->whereIn('status', ['Approved', 'Done'])->count();

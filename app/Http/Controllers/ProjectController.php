@@ -47,7 +47,11 @@ class ProjectController extends Controller
             return response()->json(['message' => 'Project not found'], 404);
         }
 
-        return response()->json($project);
+        return response()->json([
+            'project' => $project,
+            'progress' => $project->progress,
+            'panelists' => $project->panelists,
+        ]);
     }
 
     /**

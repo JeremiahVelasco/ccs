@@ -49,7 +49,7 @@
                 <div class="p-6 bg-white rounded-lg shadow dark:bg-gray-800 w-full">
                     <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Overall Progress</h3>
                     <p class="text-2xl font-bold">
-                        {{ round($this->project->progress() * 100) }}%
+                        {{ round($this->project->progressAttribute() * 100) }}%
                     </p>
                 </div>
 

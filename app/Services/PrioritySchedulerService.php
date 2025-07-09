@@ -17,20 +17,6 @@ class PrioritySchedulerService
         $endDate = Carbon::parse($data['end_date']);
         $priority = $data['priority'] ?? Activity::PRIORITY_MEDIUM;
 
-        // Debug: Prepare debug information
-        $debugInfo = [
-            'new_activity' => [
-                'title' => $data['title'] ?? 'Unknown',
-                'start_date' => $startDate->format('Y-m-d H:i:s'),
-                'end_date' => $endDate->format('Y-m-d H:i:s'),
-                'priority' => $priority,
-                'priority_label' => Activity::getPriorityOptions()[$priority] ?? 'Unknown'
-            ],
-            'conflicts_found' => [],
-            'priority_analysis' => [],
-            'decision_path' => []
-        ];
-
         // Check for conflicts
         $conflicts = Activity::findConflicts($startDate, $endDate)->get();
 

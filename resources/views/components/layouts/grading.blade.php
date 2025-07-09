@@ -19,28 +19,6 @@
         <header class="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex justify-between items-center h-16">
-                    <div class="flex gap-4 items-center">
-                        <button 
-                            id="groupGradingBtn"
-                            onclick="showGroupGrading()"
-                            class="grading-btn active text-xl font-semibold text-white transition-all duration-300 ease-in-out"
-                            style="background-color: #059669; border-radius: 5px; padding: 5px 10px; border: none; cursor: pointer;"
-                            onmouseover="if(this.classList.contains('active')) this.style.backgroundColor='#047857'"
-                            onmouseout="if(this.classList.contains('active')) this.style.backgroundColor='#059669'"
-                            >
-                            Group Grading
-                        </button>
-                        <button 
-                            id="individualGradingBtn"
-                            onclick="showIndividualGrading()"
-                            class="grading-btn text-xl font-semibold transition-all duration-300 ease-in-out"
-                            style="background-color: #6b7280; border-radius: 5px; padding: 5px 10px; color: white; border: none; cursor: pointer;"
-                            onmouseover="if(this.classList.contains('active')) this.style.backgroundColor='#047857'; else this.style.backgroundColor='#4b5563'"
-                            onmouseout="if(this.classList.contains('active')) this.style.backgroundColor='#059669'; else this.style.backgroundColor='#6b7280'"
-                            >
-                            Individual Grading
-                        </button>
-                    </div>
                     <div class="flex items-center space-x-4">
                         <a href="{{ url('/') }}" 
                             class="text-sm text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300">
@@ -53,20 +31,7 @@
 
         <!-- Main Content -->
         <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <!-- Group Grading Component -->
-            <div id="groupGradingComponent" class="grading-component active">
-                @livewire('grading-component')
-            </div>
-
-            <!-- Individual Grading Component -->
-            <div id="individualGradingComponent" class="grading-component" style="display: none;">
-                @livewire('individual-grading-component')
-            </div>
-
-            <!-- Fallback for custom slot content -->
-            <div id="customContent" style="display: none;">
-                {{ $slot }}
-            </div>
+            {{ $slot }}
         </main>
     </div>
 

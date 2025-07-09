@@ -112,45 +112,6 @@ class CalendarWidget extends FullCalendarWidget
                             ->warning()
                             ->send();
 
-                        // Show debug information
-                        if (!empty($result['debug_info'])) {
-                            $debugInfo = $result['debug_info'];
-
-                            $debugBody = "DEBUG INFO:\n\n";
-                            $debugBody .= "New Activity: " . $debugInfo['new_activity']['title'] . " (Priority: " . $debugInfo['new_activity']['priority_label'] . ")\n";
-                            $debugBody .= "Time: " . $debugInfo['new_activity']['start_date'] . " to " . $debugInfo['new_activity']['end_date'] . "\n\n";
-
-                            if (!empty($debugInfo['conflicts_found']['details'])) {
-                                $debugBody .= "Conflicts Found (" . $debugInfo['conflicts_found']['count'] . "):\n";
-                                foreach ($debugInfo['conflicts_found']['details'] as $conflict) {
-                                    $debugBody .= "- " . $conflict['title'] . " (Priority: " . $conflict['priority_label'] . ", Flexible: " . ($conflict['is_flexible'] ? 'Yes' : 'No') . ")\n";
-                                    $debugBody .= "  Time: " . $conflict['start_date'] . " to " . $conflict['end_date'] . "\n";
-                                }
-                                $debugBody .= "\n";
-                            }
-
-                            if (!empty($debugInfo['priority_analysis'])) {
-                                $analysis = $debugInfo['priority_analysis'];
-                                $debugBody .= "Priority Analysis:\n";
-                                $debugBody .= "- Higher priority conflicts: " . $analysis['higher_priority_conflicts']['count'] . "\n";
-                                $debugBody .= "- Same priority conflicts: " . $analysis['same_priority_conflicts']['count'] . "\n";
-                                $debugBody .= "- Lower priority conflicts: " . $analysis['lower_priority_conflicts']['count'] . "\n\n";
-                            }
-
-                            if (!empty($debugInfo['decision_path'])) {
-                                $debugBody .= "Decision Path:\n";
-                                foreach ($debugInfo['decision_path'] as $step) {
-                                    $debugBody .= "- " . $step . "\n";
-                                }
-                            }
-
-                            Notification::make()
-                                ->title('Debug Information')
-                                ->body($debugBody)
-                                ->info()
-                                ->send();
-                        }
-
                         // You could also show suggested times in a modal or additional notification
                         if (!empty($result['suggested_times'])) {
                             $suggestions = collect($result['suggested_times'])
