@@ -13,7 +13,17 @@ class ProjectController extends Controller
      */
     public function index()
     {
-        $projects = Project::query()->get();
+        $projects = Project::query()->get()->map(function ($project) {
+            return [
+                'id' => $project->id,
+                'title' => $project->title,
+                'progress' => $project->progressAttribute(),
+                'status' => $project->status,
+                'deadline' => $project->deadline,
+                'final_grade' => $project->final_grade,
+                ...$project->toArray(),
+            ];
+        });
 
         return response()->json($projects);
     }
@@ -41,16 +51,24 @@ class ProjectController extends Controller
      */
     public function show(string $id)
     {
+        $panelList = [];
         $project = Project::find($id);
 
         if (!$project) {
             return response()->json(['message' => 'Project not found'], 404);
         }
 
+        foreach ($project->panelists as $panelist) {
+            $user = User::find($panelist);
+            if ($user) {
+                $panelList[] = ['name' => $user->name];
+            }
+        }
+
         return response()->json([
             'project' => $project,
-            'progress' => $project->progress,
-            'panelists' => $project->panelists,
+            'progress' => $project->progressAttribute(),
+            'panelists' => $panelList,
         ]);
     }
 
