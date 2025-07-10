@@ -31,6 +31,7 @@ class Group extends Page
     public $editRoleData = [];
     public $addingMember = false;
     public $addMemberData = [];
+    public $groupRoles = [];
 
     public function mount(): void
     {
@@ -40,6 +41,7 @@ class Group extends Page
         if ($group) {
             $this->hasGroup = true;
             $this->groupInfo = $group->load('members');
+            $this->groupRoles = $this->groupInfo->members->pluck('group_role')->unique();
         }
     }
 
@@ -263,6 +265,50 @@ class Group extends Page
     {
         $this->addingMember = false;
         $this->addMemberData = [];
+    }
+
+    public function removeMember($memberId)
+    {
+        $user = Auth::user();
+
+        // Only group leader can remove members
+        if (!$user->isLeader() || $user->group->leader_id !== $user->id) {
+            Notification::make()
+                ->title('Only group leaders can remove members')
+                ->danger()
+                ->send();
+            return;
+        }
+
+        $member = User::find($memberId);
+
+        if (!$member || $member->group_id !== $user->group_id) {
+            Notification::make()
+                ->title('Member not found')
+                ->danger()
+                ->send();
+            return;
+        }
+
+        // Don't allow removing the group leader
+        if ($member->id === $user->group->leader_id) {
+            Notification::make()
+                ->title('Cannot remove group leader')
+                ->danger()
+                ->send();
+            return;
+        }
+
+        $member->group_id = null;
+        $member->group_role = null;
+        $member->save();
+
+        Notification::make()
+            ->title('Member removed successfully')
+            ->success()
+            ->send();
+
+        $this->groupInfo = $this->groupInfo->fresh('members');
     }
 
     public function getAvailableStudentsProperty()

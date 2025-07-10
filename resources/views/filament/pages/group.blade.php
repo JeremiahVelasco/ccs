@@ -98,10 +98,10 @@
                     @if($groupInfo->hasProject())
                         <div>
                             <h3 class="text-lg font-medium">Project</h3>
-                            <div class="mt-2 p-3 bg-gray-50 dark:bg-gray-700/30 rounded-lg">
+                            <div class="mt-2 p-2 border border-gray-200 rounded-lg">
                                 <p class="font-medium">{{ $groupInfo->project->title }}</p>
                                 @if($groupInfo->project->description)
-                                    <p class="text-sm text-gray-600 dark:text-gray-300 mt-1">
+                                    <p class="text-sm text-gray-400 mt-1">
                                         {{ \Illuminate\Support\Str::limit($groupInfo->project->description, 100) }}
                                     </p>
                                 @endif
@@ -114,9 +114,9 @@
                         </div>
                     @endif
                     
-                    <div>
+                    <div class="border border-gray-200 rounded-lg p-2">
                         <div class="flex justify-between items-center mb-2">
-                            <h3 class="text-lg font-medium">Members ({{ $groupInfo->member_count }})</h3>
+                            <h3 class="text-lg font-medium">Members ({{ $groupInfo->members->count() }})</h3>
                             @if(auth()->user()->isLeader() && auth()->user()->group->leader_id === auth()->user()->id)
                                 <x-filament::button size="sm" color="success" wire:click="startAddingMember">
                                     Add Member
@@ -139,7 +139,7 @@
                                             @endforeach
                                         </select>
                                     </div>
-                                    <div class="flex space-x-2">
+                                    <div class="flex gap-x-2">
                                         <x-filament::button type="submit" size="sm">
                                             Add Member
                                         </x-filament::button>
@@ -153,25 +153,26 @@
                         
                         <div class="mt-2 space-y-2">
                             @foreach($groupInfo->members as $member)
-                                <div class="flex items-center space-x-2 p-2 {{ $member->id === $groupInfo->leader_id ? 'bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700/30' : 'bg-gray-50 dark:bg-gray-700/30' }} rounded-lg">
+                                <div class="flex items-center space-x-2 p-2 rounded-lg">
                                     <div class="flex-1">
                                         <div class="flex items-center">
                                             <p class="font-medium">{{ $member->name }}</p>
                                             @if($member->student_id)
-                                                <span class="ml-2 text-xs text-gray-500">({{ $member->student_id }})</span>
+                                                <span class="ml-2 text-xs text-gray-400">({{ $member->student_id }})</span>
                                             @endif
                                         </div>
-                                        <p class="text-sm text-gray-500 dark:text-gray-400">{{ $member->email }}</p>
+                                        <p class="text-sm text-gray-400">{{ $member->email }}</p>
                                     </div>
                                     
                                     @if($editingRole === $member->id)
-                                        <div class="flex items-center space-x-2">
+                                        <div class="flex items-center space-x-2 gap-x-2">
                                             <select 
                                                 wire:model="editRoleData.role" 
                                                 class="text-xs rounded border-gray-300 dark:border-gray-600 dark:bg-gray-700"
                                             >
-                                                <option value="member">Member</option>
-                                                <option value="co-leader">Co-Leader</option>
+                                                @foreach ($groupRoles as $role)
+                                                    <option value="{{ $role }}">{{ $role }}</option>
+                                                @endforeach
                                             </select>
                                             <x-filament::button size="xs" wire:click="updateRole">
                                                 Save
@@ -196,11 +197,19 @@
                                                 </span>
                                             @endif
                                             
-                                            @if(auth()->user()->isLeader() && auth()->user()->group->leader_id === auth()->user()->id && $member->id !== $groupInfo->leader_id)
-                                                <x-filament::button size="xs" color="gray" wire:click="editRole({{ $member->id }})">
-                                                    Edit Role
-                                                </x-filament::button>
-                                            @endif
+                                            <div class="gap-2">
+                                                @if(auth()->user()->isLeader() && auth()->user()->group->leader_id === auth()->user()->id && $member->id !== $groupInfo->leader_id)
+                                                    <x-filament::button size="xs" color="gray" wire:click="editRole({{ $member->id }})">
+                                                        Edit Role
+                                                    </x-filament::button>
+                                                @endif
+    
+                                                @if(auth()->user()->isLeader() && auth()->user()->group->leader_id === auth()->user()->id && $member->id !== $groupInfo->leader_id)
+                                                    <x-filament::button size="xs" color="danger" wire:click="removeMember({{ $member->id }})">
+                                                        Remove Member
+                                                    </x-filament::button>
+                                                @endif
+                                            </div>
                                         </div>
                                     @endif
                                 </div>

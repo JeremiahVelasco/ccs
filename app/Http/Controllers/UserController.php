@@ -7,23 +7,30 @@ use Illuminate\Http\Request;
 
 class UserController extends Controller
 {
+    public function index()
+    {
+        $users = User::all();
+
+        return response()->json($users);
+    }
+
     public function getFaculty()
     {
-        $faculty = User::where('role', 'faculty')->get();
+        $faculty = User::role('faculty')->get();
 
         return response()->json($faculty);
     }
 
-    public function getStudent()
+    public function getStudents()
     {
-        $student = User::where('role', 'student')->get();
+        $student = User::role('student')->get();
 
         return response()->json($student);
     }
 
     public function getAdmin()
     {
-        $admin = User::where('role', 'admin')->get();
+        $admin = User::role('super_admin')->get();
 
         return response()->json($admin);
     }

@@ -1,20 +1,22 @@
 <?php
 
 use App\Http\Controllers\ActivityController;
-use App\Http\Controllers\ProjectPredictionController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\EvaluationController;
 use App\Http\Controllers\GroupController;
 use App\Http\Controllers\OpenAIController;
+use App\Http\Controllers\PanelistController;
 use App\Http\Controllers\ProjectController;
+use App\Http\Controllers\ProjectPredictionController;
 use App\Http\Controllers\RepositoryController;
+use App\Http\Controllers\RubricController;
+use App\Http\Controllers\StudentGroupController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\UserController;
-use App\Http\Controllers\RubricController;
-use App\Http\Controllers\PanelistController;
-use App\Http\Controllers\EvaluationController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+
 
 
 
@@ -53,7 +55,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // User Routes
     Route::get('/users/faculty', [UserController::class, 'getFaculty']);
-    Route::get('/users/student', [UserController::class, 'getStudent']);
+    Route::get('/users/students', [UserController::class, 'getStudents']);
     Route::get('/users/admin', [UserController::class, 'getAdmin']);
     Route::put('/users/update-profile', [UserController::class, 'updateProfile']);
 
@@ -82,16 +84,24 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/groups/{groupId}/update', [GroupController::class, 'update']);
     Route::delete('/groups/{groupId}/delete', [GroupController::class, 'destroy']);
 
+    // Student's Group Routes
+    Route::get('/my-group', [StudentGroupController::class, 'index']);
+    Route::post('/my-group/create-group', [StudentGroupController::class, 'store']);
+    Route::put('/my-group/update', [StudentGroupController::class, 'update']);
+    Route::delete('/my-group/delete', [StudentGroupController::class, 'destroy']);
+    Route::get('/my-group/students-without-group', [StudentGroupController::class, 'getStudentsWithoutGroup']);
+    Route::post('/my-group/add-member', [StudentGroupController::class, 'addMember']);
+    Route::post('/my-group/remove-member', [StudentGroupController::class, 'removeMember']);
+    Route::post('/my-group/join-group', [StudentGroupController::class, 'joinGroup']);
+    Route::post('/my-group/leave-group', [StudentGroupController::class, 'leaveGroup']);
+
     // Task Routes
     Route::get('/tasks/documentation', [TaskController::class, 'getDocumentationTasks']);
     Route::get('/tasks/development', [TaskController::class, 'getDevelopmentTasks']);
+    Route::get('/tasks/filter/{id}/{type}/{status}', [TaskController::class, 'filterTasks']);
     Route::post('/tasks/create-development-task', [TaskController::class, 'store']);
     Route::put('/tasks/{taskId}/update', [TaskController::class, 'update']);
     Route::delete('/tasks/{taskId}/delete', [TaskController::class, 'destroy']);
-
-    // Legacy OpenAI Routes (consider deprecating in favor of Bayesian predictions)
-    Route::post('/projects/{projectId}/predict-legacy', [OpenAIController::class, 'predict']);
-    Route::post('/projects/predict-legacy', [OpenAIController::class, 'predictAll']);
 
     // Rubric Management Routes
     Route::prefix('rubrics')->group(function () {

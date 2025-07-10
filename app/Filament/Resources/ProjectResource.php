@@ -101,6 +101,7 @@ class ProjectResource extends Resource
                                     ->maxValue(100)
                                     ->suffix('%'),
                                 TextInput::make('final_grade')
+                                    ->disabled()
                                     ->numeric()
                                     ->maxValue(100),
                                 TagsInput::make('awards')
