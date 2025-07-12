@@ -30,20 +30,7 @@ class FacultyAdvisedGroupsWidget extends BaseWidget
                     ->size(40),
 
                 TextColumn::make('name')
-                    ->searchable()
                     ->weight('bold'),
-
-                TextColumn::make('group_code')
-                    ->badge()
-                    ->color('gray'),
-
-                TextColumn::make('leader.name')
-                    ->label('Leader')
-                    ->searchable(),
-
-                TextColumn::make('members_count')
-                    ->label('Members')
-                    ->getStateUsing(fn($record) => $record->members()->count()),
 
                 TextColumn::make('project.status')
                     ->label('Project Status')

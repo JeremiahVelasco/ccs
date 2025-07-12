@@ -12,10 +12,12 @@ use App\Http\Controllers\ProjectPredictionController;
 use App\Http\Controllers\RepositoryController;
 use App\Http\Controllers\RubricController;
 use App\Http\Controllers\StudentGroupController;
+use App\Http\Controllers\StudentProjectController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+
 
 
 
@@ -70,6 +72,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/projects', [ProjectController::class, 'index']);
     Route::get('/projects/{projectId}', [ProjectController::class, 'show']);
     Route::post('/projects/create-project', [ProjectController::class, 'store']);
+    Route::get('/projects/{taskId}/view-task', [ProjectController::class, 'viewTask']);
+    Route::get('/projects/{projectId}/development-tasks', [ProjectController::class, 'projectDevelopmentTasks']);
+    Route::get('/projects/{projectId}/documentation-tasks', [ProjectController::class, 'projectDocumentationTasks']);
+    Route::put('/projects/{projectId}/approve-task', [ProjectController::class, 'approveTask']);
+    Route::put('/projects/{projectId}/reject-task', [ProjectController::class, 'rejectTask']);
     Route::put('/projects/{projectId}/update', [ProjectController::class, 'update']);
     Route::delete('/projects/{projectId}/delete', [ProjectController::class, 'destroy']);
 
@@ -95,10 +102,21 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/my-group/join-group', [StudentGroupController::class, 'joinGroup']);
     Route::post('/my-group/leave-group', [StudentGroupController::class, 'leaveGroup']);
 
+    // Student's Project Routes
+    Route::get('/my-project', [StudentProjectController::class, 'index']);
+    Route::post('/my-project/create-project', [StudentProjectController::class, 'store']);
+    Route::put('/my-project/update', [StudentProjectController::class, 'update']);
+    Route::delete('/my-project/delete', [StudentProjectController::class, 'destroy']);
+
     // Task Routes
     Route::get('/tasks/documentation', [TaskController::class, 'getDocumentationTasks']);
     Route::get('/tasks/development', [TaskController::class, 'getDevelopmentTasks']);
-    Route::get('/tasks/filter/{id}/{type}/{status}', [TaskController::class, 'filterTasks']);
+    Route::post('/tasks', [TaskController::class, 'store']); // Create any type of task
+    Route::get('/tasks/{taskId}', [TaskController::class, 'show']);
+    Route::put('/tasks/{taskId}', [TaskController::class, 'update']);
+    Route::delete('/tasks/{taskId}', [TaskController::class, 'destroy']);
+
+    // Legacy routes for backward compatibility
     Route::post('/tasks/create-development-task', [TaskController::class, 'store']);
     Route::put('/tasks/{taskId}/update', [TaskController::class, 'update']);
     Route::delete('/tasks/{taskId}/delete', [TaskController::class, 'destroy']);

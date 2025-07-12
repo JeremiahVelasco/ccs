@@ -102,8 +102,10 @@ class Project extends Model
         $totalTasks = $this->tasks()->count();
         $completedTasks = $this->tasks()->whereIn('status', ['Approved', 'Done'])->count();
 
+        $this->progress = round(($completedTasks / $totalTasks) * 100);
+        $this->save();
 
-        return $completedTasks / $totalTasks;
+        return $this->progress;
     }
 
     public function files()

@@ -204,6 +204,12 @@ class Project extends Page
         $predictionService = new ProjectPredictionService();
         $prediction = $predictionService->predictCompletion($this->project);
 
+        $this->project->update([
+            'completion_probability' => $prediction['probability'],
+            'last_prediction_at' => now(),
+            'prediction_version' => ($this->project->prediction_version ?? 0) + 1
+        ]);
+
         Notification::make()
             ->title('Success')
             ->body('Prediction refreshed successfully!')

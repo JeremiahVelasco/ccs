@@ -140,10 +140,6 @@ class StudentGroupController extends Controller
             return response()->json(['message' => 'User not found'], 404);
         }
 
-        if ($group->members()->where('id', $user->id)->exists()) {
-            return response()->json(['message' => 'User already in group'], 400);
-        }
-
         // Remove user from group
         $user->group_id = null;
         $user->group_role = null;

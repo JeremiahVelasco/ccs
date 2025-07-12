@@ -31,13 +31,11 @@ class FacultyPanelistAssignmentsWidget extends BaseWidget
                     ->size(40),
 
                 TextColumn::make('title')
-                    ->searchable()
                     ->weight('bold')
                     ->limit(50),
 
                 TextColumn::make('group.name')
-                    ->label('Group')
-                    ->searchable(),
+                    ->label('Group'),
 
                 TextColumn::make('status')
                     ->badge()

@@ -95,10 +95,7 @@ class ProjectResource extends Resource
                                     ]),
                                 TextInput::make('progress')
                                     ->disabled()
-                                    ->numeric()
-                                    ->default(0)
-                                    ->minValue(0)
-                                    ->maxValue(100)
+                                    ->numeric(2)
                                     ->suffix('%'),
                                 TextInput::make('final_grade')
                                     ->disabled()
@@ -121,23 +118,28 @@ class ProjectResource extends Resource
         return $table
             ->striped()
             ->columns([
-                TextColumn::make('status')
-                    ->badge()
-                    ->description(fn(Project $record) => round($record->progressAttribute() * 100) . '%'),
                 TextColumn::make('title')
                     ->searchable()
                     ->description(fn(Project $record) => $record->group->name),
+                TextColumn::make('completion_probability')
+                    ->label('Completion Probability')
+                    ->state(fn(Project $record) => $record->completion_probability * 100 . '%')
+                    ->numeric(2),
+                TextColumn::make('status')
+                    ->badge()
+                    ->description(fn(Project $record) => $record->progressAttribute() . '%'),
                 TextColumn::make('panelist_status')
                     ->label('Panelists')
                     ->badge()
                     ->color(fn(string $state): string => $state === 'Complete' ? 'success' : 'danger'),
+                TextColumn::make('deadline')
+                    ->date()
+                    ->label('Deadline'),
                 TextColumn::make('awards'),
                 TextColumn::make('final_grade')
+                    ->state(fn(Project $record) => $record->final_grade ?? 'N/A')
                     ->numeric(2)
                     ->sortable(),
-                TextColumn::make('deadline')
-                    ->label('Deadline')
-                    ->date('d-m-Y'),
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('panelist_status')
