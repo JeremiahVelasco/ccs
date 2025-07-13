@@ -60,10 +60,6 @@ class StudentTasksWidget extends BaseWidget
                 TextColumn::make('deadline')
                     ->date()
                     ->sortable()
-                    ->color(
-                        fn($record) =>
-                        $record->deadline && $record->deadline->isPast() ? 'danger' : null
-                    ),
             ])
             ->actions([
                 Tables\Actions\Action::make('view')

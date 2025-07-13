@@ -32,7 +32,7 @@ class TaskController extends Controller
             return response()->json(['error' => 'No project found for your group'], 404);
         }
 
-        $tasks = Task::where('project_id', $project->id)->where('type', 'documentation')->get();
+        $tasks = Task::where('project_id', $project->id)->where('type', 'documentation')->with('assignedTo')->get();
         return response()->json($tasks);
     }
 
@@ -48,7 +48,7 @@ class TaskController extends Controller
             return response()->json(['error' => 'No project found for your group'], 404);
         }
 
-        $tasks = Task::where('project_id', $project->id)->where('type', 'development')->get();
+        $tasks = Task::where('project_id', $project->id)->where('type', 'development')->with('assignedTo')->get();
         return response()->json($tasks);
     }
 
@@ -126,7 +126,7 @@ class TaskController extends Controller
             ]);
 
             // Load relationships for response
-            $task->load('project');
+            $task->load('project', 'assignedTo');
 
             return response()->json([
                 'success' => true,
@@ -152,7 +152,7 @@ class TaskController extends Controller
     public function show(string $id): JsonResponse
     {
         try {
-            $task = Task::with('project')->find($id);
+            $task = Task::with('project', 'assignedTo')->find($id);
 
             if (!$task) {
                 return response()->json([
