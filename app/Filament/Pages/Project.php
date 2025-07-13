@@ -83,7 +83,7 @@ class Project extends Page
                 Textarea::make('description')
                     ->required()
                     ->maxLength(1000)
-                    ->placeholder('Describe your project')
+                    ->placeholder('Project description')
                     ->rows(5),
             ])
             ->statePath('data');
