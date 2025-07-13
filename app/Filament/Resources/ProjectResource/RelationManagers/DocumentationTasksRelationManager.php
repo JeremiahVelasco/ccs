@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\ProjectResource\RelationManagers;
 
+use App\Filament\Clusters\Tasks\Resources\TaskResource;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
@@ -31,6 +32,7 @@ class DocumentationTasksRelationManager extends RelationManager
     {
         return $table
             ->recordTitleAttribute('title')
+            ->recordUrl(fn(Model $record) => TaskResource::getUrl('edit', ['record' => $record->id]))
             ->columns([
                 TextColumn::make('title'),
                 TextColumn::make('status'),

@@ -63,7 +63,9 @@ class TaskResource extends Resource
                     ->columnSpanFull()
                     ->disk('public')
                     ->directory('task-files')
-                    ->previewable(),
+                    ->visibility('public')
+                    ->previewable()
+                    ->downloadable(),
             ]);
     }
 

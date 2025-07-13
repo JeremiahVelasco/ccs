@@ -68,10 +68,12 @@ class Project extends Page
                     ->avatar()
                     ->hiddenLabel()
                     ->alignCenter()
+                    ->disk('public')
+                    ->downloadable()
+                    ->previewable()
                     ->directory('project-logos')
                     ->visibility('public')
-                    ->imagePreviewHeight('100')
-                    ->maxSize(1024),
+                    ->imagePreviewHeight('100'),
 
                 TextInput::make('title')
                     ->required()
