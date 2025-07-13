@@ -60,6 +60,7 @@ class StudentTasksWidget extends BaseWidget
                 TextColumn::make('deadline')
                     ->date()
                     ->sortable()
+
             ])
             ->actions([
                 Tables\Actions\Action::make('view')

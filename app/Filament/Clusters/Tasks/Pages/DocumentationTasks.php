@@ -48,12 +48,20 @@ class DocumentationTasks extends Page implements HasForms, HasTable
                     ->disabled(!Auth::user()->isLeader())
                     ->options(User::query()->where('group_id', Auth::user()->group_id)->pluck('name', 'id')->toArray()),
                 SelectColumn::make('status')
-                    ->options([
-                        'To-do' => 'To-do',
-                        'In Progress' => 'In Progress',
-                        'For Review' => 'For Review',
-                        'Approved' => 'Approved',
-                    ])
+                    ->options(function ($record) {
+                        $baseOptions = [
+                            'To-do' => 'To-do',
+                            'In Progress' => 'In Progress',
+                            'For Review' => 'For Review',
+                        ];
+
+                        // Only include "Approved" if the record already has that status
+                        if ($record->status === 'Approved') {
+                            $baseOptions['Approved'] = 'Approved';
+                        }
+
+                        return $baseOptions;
+                    })
                     ->disabled(fn($record) => $record->status === 'Approved'),
             ])
             ->actions([

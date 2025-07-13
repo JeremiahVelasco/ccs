@@ -34,7 +34,7 @@ class ProjectPredictionService
 
         // Calculate task progress (0: Low, 1: Medium, 2: High)
         $totalTasks = $project->tasks()->count();
-        $completedTasks = $project->tasks()->where('status', 'Approved')->count();
+        $completedTasks = $project->tasks()->whereIn('status', ['Approved', 'Done'])->count();
         $taskProgress = $totalTasks > 0 ? $completedTasks / $totalTasks : 0;
 
         $taskProgressLevel = match (true) {
