@@ -66,6 +66,7 @@ class TaskResource extends Resource
                     ->visibility('public')
                     ->previewable()
                     ->preserveFilenames()
+                    ->openable()
                     ->downloadable(),
             ]);
     }
