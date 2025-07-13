@@ -57,23 +57,7 @@ class DocumentationTasks extends Page implements HasForms, HasTable
                     ->disabled(fn($record) => $record->status === 'Approved'),
             ])
             ->actions([
-                Action::make('upload')
-                    ->disabled(fn($record) => !empty($record->file_path))
-                    ->visible(fn($record) => empty($record->file_path))
-                    ->tooltip('Upload File')
-                    ->hiddenLabel()
-                    ->form([
-                        FileUpload::make('file')
-                            ->label('Upload File')
-                            ->disk('public')
-                            ->directory('task-files')
-                    ])
-                    ->action(function ($record, $data) {
-                        $record->file_path = $data['file'];
-                        $record->save();
-                    })
-                    ->icon('heroicon-o-arrow-up-tray')
-                    ->color('primary'),
+                //
             ]);
     }
 }
