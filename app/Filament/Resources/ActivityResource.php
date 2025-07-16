@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\ActivityResource\Pages;
 use App\Filament\Resources\ActivityResource\RelationManagers;
 use App\Models\Activity;
+use App\Models\User;
 use Carbon\Carbon;
 use Filament\Forms;
 use Filament\Forms\Components\DateTimePicker;
@@ -17,6 +18,8 @@ use Filament\Resources\Resource;
 use Filament\Support\Enums\MaxWidth;
 use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Enums\FiltersLayout;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -82,12 +85,14 @@ class ActivityResource extends Resource
             ->columns([
                 TextColumn::make('start_date')
                     ->dateTime('M d Y - h:iA')
+                    ->sortable()
                     ->description(
                         fn(Model $record): string =>
                         Carbon::parse($record->start_date)->diffForHumans()
                     ),
                 TextColumn::make('end_date')
                     ->dateTime('M d Y - h:iA')
+                    ->sortable()
                     ->description(
                         fn(Model $record): string =>
                         Carbon::parse($record->end_date)->diffForHumans()
@@ -101,8 +106,16 @@ class ActivityResource extends Resource
                     ->limit(20),
             ])
             ->filters([
-                //
-            ])
+                SelectFilter::make('user_id')
+                    ->options(User::faculty()->pluck('name', 'id'))
+                    ->label('Created by'),
+                SelectFilter::make('category')
+                    ->options(Activity::getCategoryOptions())
+                    ->label('Category'),
+                SelectFilter::make('priority')
+                    ->options(Activity::getPriorityOptions())
+                    ->label('Priority'),
+            ], layout: FiltersLayout::AboveContent)
             ->actions([
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),

@@ -9,26 +9,26 @@ use App\Filament\Resources\ProjectResource\RelationManagers\DocumentationTasksRe
 
 use App\Models\CriterionGrade;
 use App\Models\Group;
+use App\Models\GroupRubricEvaluation;
 use App\Models\IndividualRubricEvaluation;
 use App\Models\Project;
 use App\Models\ProjectGrade;
-use App\Models\GroupRubricEvaluation;
 use App\Models\Rubric;
 use App\Models\RubricCriteria;
 use App\Models\User;
 use App\Services\GradingService;
 use App\Services\ProjectPredictionService;
 use Filament\Forms;
+use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Grid;
-use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TagsInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Form;
 use Filament\Forms\Components\View;
+use Filament\Forms\Form;
 use Filament\Infolists;
 use Filament\Infolists\Infolist;
 use Filament\Notifications\Notification;
@@ -37,6 +37,7 @@ use Filament\Support\Colors\Color;
 use Filament\Tables;
 use Filament\Tables\Actions\Action;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Enums\FiltersLayout;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
@@ -164,7 +165,7 @@ class ProjectResource extends Resource
                         'Done' => 'Done',
                     ])
                     ->label('Status'),
-            ])
+            ], layout: FiltersLayout::AboveContent)
             ->actions([
                 Tables\Actions\ViewAction::make()
                     ->tooltip('View Project')

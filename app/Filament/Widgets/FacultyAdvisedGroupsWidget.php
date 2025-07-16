@@ -22,18 +22,19 @@ class FacultyAdvisedGroupsWidget extends BaseWidget
             ->query(
                 Group::query()
                     ->where('adviser', $user->id)
+                    ->where('status', 'Active')
                     ->with(['project', 'leader', 'members'])
             )
+            ->recordUrl(
+                fn(Group $record): string =>
+                $record->project ? route('filament.admin.resources.projects.view', ['record' => $record->id]) : '#'
+            )
             ->columns([
-                ImageColumn::make('logo')
-                    ->circular()
-                    ->size(40),
-
                 TextColumn::make('name')
                     ->weight('bold'),
 
                 TextColumn::make('project.status')
-                    ->label('Project Status')
+                    ->label('Status')
                     ->badge()
                     ->color(fn(string $state): string => match ($state) {
                         'Done' => 'success',
@@ -46,16 +47,14 @@ class FacultyAdvisedGroupsWidget extends BaseWidget
                     ->label('Progress')
                     ->suffix('%')
                     ->color(fn($state) => $state >= 75 ? 'success' : ($state >= 50 ? 'warning' : 'danger')),
+
+                TextColumn::make('project.completion_probability')
+                    ->label('Completion Probability')
+                    ->formatStateUsing(fn($state) => round($state * 100) . '%')
+                    ->color(fn($state) => $state >= 75 ? 'success' : ($state >= 50 ? 'warning' : 'danger')),
             ])
             ->actions([
-                Tables\Actions\Action::make('view_project')
-                    ->icon('heroicon-m-eye')
-                    ->url(
-                        fn(Group $record): string =>
-                        $record->project ? route('filament.admin.resources.groups.edit', ['record' => $record->id]) : '#'
-                    )
-                    ->openUrlInNewTab()
-                    ->visible(fn(Group $record) => $record->project !== null),
+                //
             ])
             ->emptyStateHeading('No groups assigned')
             ->emptyStateDescription('You are not currently advising any groups.')

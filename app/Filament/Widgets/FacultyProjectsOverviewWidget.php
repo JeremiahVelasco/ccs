@@ -33,7 +33,7 @@ class FacultyProjectsOverviewWidget extends StatsOverviewWidget
 
         return [
             Stat::make('Advised Projects', $advisedProjects)
-                ->description('Projects under your guidance')
+                ->description('Groups under your guidance')
                 ->descriptionIcon('heroicon-m-user-group')
                 ->color('success'),
 
