@@ -6,6 +6,7 @@ use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
+use Filament\Navigation\MenuItem;
 use Filament\Navigation\NavigationItem;
 use Filament\Pages;
 use Filament\Panel;
@@ -53,6 +54,13 @@ class AdminPanelProvider extends PanelProvider
             ])
             ->navigationItems([
                 //
+            ])
+            ->userMenuItems([
+                MenuItem::make()
+                    ->label('Schedule')
+                    ->url(fn(): string => route('filament.admin.pages.schedule'))
+                    ->visible(fn(): bool => auth()->user()->isFaculty())
+                    ->icon('heroicon-o-calendar'),
             ])
             ->middleware([
                 EncryptCookies::class,

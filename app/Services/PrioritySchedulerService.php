@@ -17,6 +17,19 @@ class PrioritySchedulerService
         $endDate = Carbon::parse($data['end_date']);
         $priority = $data['priority'] ?? Activity::PRIORITY_MEDIUM;
 
+        $userHasClass = Activity::where('user_id', auth()->user()->id)
+            ->where('category', 'class')
+            ->where('start_date', '<=', $startDate)
+            ->where('end_date', '>=', $endDate)
+            ->exists();
+
+        if ($data['category'] === 'class' && $userHasClass) {
+            return [
+                'success' => false,
+                'message' => 'You already have a class scheduled during this time.',
+            ];
+        }
+
         // Check for conflicts
         $conflicts = Activity::findConflicts($startDate, $endDate)->get();
 

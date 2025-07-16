@@ -3,9 +3,11 @@
 namespace App\Models;
 
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\Auth;
 
 class Activity extends Model
 {
@@ -13,14 +15,23 @@ class Activity extends Model
 
     protected $table = 'activities';
 
+    protected static function boot()
+    {
+        parent::boot();
+        static::creating(function ($model) {
+            $model->user_id = Auth::id();
+        });
+    }
+
     protected $fillable = [
         'title',
+        'user_id', // the user who created the activity
         'description',
         'start_date',
         'end_date',
-        'priority',
+        'priority', // low, medium, high, urgent
         'is_flexible', // can be rescheduled automatically
-        'category', //  meeting, event, defense, presentation, evaluation, other
+        'category', //  class, meeting, event, defense, presentation, evaluation, other
     ];
 
     protected $casts = [
@@ -28,6 +39,7 @@ class Activity extends Model
         'end_date' => 'datetime',
         'is_flexible' => 'boolean',
         'priority' => 'integer',
+        'user_id' => 'integer',
     ];
 
     // Priority levels
@@ -46,9 +58,15 @@ class Activity extends Model
         ];
     }
 
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
     public static function getCategoryOptions(): array
     {
         return [
+            'class' => 'Class',
             'meeting' => 'Meeting',
             'event' => 'Event',
             'defense' => 'Defense',

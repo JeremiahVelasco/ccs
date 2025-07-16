@@ -7,6 +7,7 @@ use App\Models\Activity;
 use App\Services\PrioritySchedulerService;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Grid;
+use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -226,19 +227,25 @@ class CalendarWidget extends FullCalendarWidget
                         ->required()
                         ->maxLength(255)
                         ->columnSpan(2),
-                    DateTimePicker::make('start_date')
+                    Select::make('category')
                         ->required()
-                        ->default(now()),
-                    DateTimePicker::make('end_date')
-                        ->required()
-                        ->default(now()->addHours(1)),
+                        ->options(Activity::getCategoryOptions()),
                     Select::make('priority')
                         ->options(Activity::getPriorityOptions())
                         ->default(Activity::PRIORITY_MEDIUM)
                         ->required(),
-                    Select::make('category')
-                        ->required()
-                        ->options(Activity::getCategoryOptions()),
+                    Section::make('Date and Time')
+                        ->schema([
+                            DateTimePicker::make('start_date')
+                                ->required()
+                                ->seconds(false)
+                                ->default(now()),
+                            DateTimePicker::make('end_date')
+                                ->required()
+                                ->seconds(false)
+                                ->default(now()->addHours(1)),
+                        ])
+                        ->columns(2),
                     Toggle::make('is_flexible')
                         ->label('Can be rescheduled automatically')
                         ->default(true)
