@@ -46,10 +46,6 @@ class DevelopmentTasks extends Page implements HasForms, HasTable
     {
         $query = Task::development();
 
-        if (Auth::user()->isStudent()) {
-            $query->where('project_id', Auth::user()->group->project->id);
-        }
-
         return $table
             ->query($query)
             ->reorderable('sort')
