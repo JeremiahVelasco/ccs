@@ -18,6 +18,7 @@ return new class extends Migration
             $table->foreignId('leader_id')->nullable()->constrained('users');
             $table->string('group_code')->unique();
             $table->string('course')->nullable();
+            $table->string('section')->nullable();
             $table->text('description')->nullable();
             $table->foreignId('adviser')->nullable()->constrained('users');
             $table->string('status')->default('pending'); // pending, approved, rejected
