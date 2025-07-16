@@ -56,20 +56,17 @@ class ProjectCompletionPredictor:
             "network_structure": [
                 ('task_progress', 'project_completion'),
                 ('team_collaboration', 'project_completion'),
-                ('faculty_approval', 'project_completion'),
                 ('timeline_adherence', 'project_completion')
             ],
             "node_cardinalities": {
                 'task_progress': 3,
                 'team_collaboration': 3,
-                'faculty_approval': 2,
                 'timeline_adherence': 3,
                 'project_completion': 2
             },
             "prior_probabilities": {
                 'task_progress': [0.3, 0.5, 0.2],  # Low, Medium, High
                 'team_collaboration': [0.2, 0.6, 0.2],  # Poor, Good, Excellent
-                'faculty_approval': [0.4, 0.6],  # Not Approved, Approved
                 'timeline_adherence': [0.35, 0.5, 0.15]  # Behind, On Track, Ahead
             },
             "use_learning": False,
@@ -130,14 +127,6 @@ class ProjectCompletionPredictor:
         )
         cpds.append(team_collab_cpd)
         
-        # Faculty Approval CPD
-        faculty_approval_cpd = TabularCPD(
-            variable='faculty_approval',
-            variable_card=2,
-            values=np.array(self.config['prior_probabilities']['faculty_approval']).reshape(2, 1)
-        )
-        cpds.append(faculty_approval_cpd)
-        
         # Timeline Adherence CPD
         timeline_cpd = TabularCPD(
             variable='timeline_adherence',
@@ -156,48 +145,31 @@ class ProjectCompletionPredictor:
         """Create the main project completion CPD with improved probabilities"""
         
         # More realistic probability distributions based on project management research
-        # Format: task_progress (0,1,2) x team_collab (0,1,2) x faculty (0,1) x timeline (0,1,2)
+        # Format: task_progress (0,1,2) x team_collab (0,1,2) x timeline (0,1,2)
+        # 3 x 3 x 3 = 27 combinations
         
         # Failure probabilities (more nuanced based on combinations)
         failure_probs = [
-            # task=0 (Low), team=0 (Poor), faculty=0 (Not Approved), timeline=0,1,2
+            # task=0 (Low), team=0 (Poor), timeline=0,1,2 (Behind, On Track, Ahead)
             [0.95, 0.92, 0.88],
-            # task=0 (Low), team=1 (Good), faculty=0 (Not Approved), timeline=0,1,2
+            # task=0 (Low), team=1 (Good), timeline=0,1,2
             [0.90, 0.85, 0.80],
-            # task=0 (Low), team=2 (Excellent), faculty=0 (Not Approved), timeline=0,1,2
+            # task=0 (Low), team=2 (Excellent), timeline=0,1,2
             [0.85, 0.78, 0.70],
-            # task=0 (Low), team=0 (Poor), faculty=1 (Approved), timeline=0,1,2
-            [0.88, 0.82, 0.75],
-            # task=0 (Low), team=1 (Good), faculty=1 (Approved), timeline=0,1,2
-            [0.80, 0.72, 0.65],
-            # task=0 (Low), team=2 (Excellent), faculty=1 (Approved), timeline=0,1,2
-            [0.75, 0.65, 0.55],
             
-            # task=1 (Medium), team=0 (Poor), faculty=0 (Not Approved), timeline=0,1,2
+            # task=1 (Medium), team=0 (Poor), timeline=0,1,2
             [0.80, 0.75, 0.68],
-            # task=1 (Medium), team=1 (Good), faculty=0 (Not Approved), timeline=0,1,2
+            # task=1 (Medium), team=1 (Good), timeline=0,1,2
             [0.70, 0.62, 0.55],
-            # task=1 (Medium), team=2 (Excellent), faculty=0 (Not Approved), timeline=0,1,2
+            # task=1 (Medium), team=2 (Excellent), timeline=0,1,2
             [0.65, 0.55, 0.45],
-            # task=1 (Medium), team=0 (Poor), faculty=1 (Approved), timeline=0,1,2
-            [0.72, 0.65, 0.58],
-            # task=1 (Medium), team=1 (Good), faculty=1 (Approved), timeline=0,1,2
-            [0.60, 0.50, 0.40],
-            # task=1 (Medium), team=2 (Excellent), faculty=1 (Approved), timeline=0,1,2
-            [0.50, 0.38, 0.28],
             
-            # task=2 (High), team=0 (Poor), faculty=0 (Not Approved), timeline=0,1,2
+            # task=2 (High), team=0 (Poor), timeline=0,1,2
             [0.65, 0.55, 0.45],
-            # task=2 (High), team=1 (Good), faculty=0 (Not Approved), timeline=0,1,2
+            # task=2 (High), team=1 (Good), timeline=0,1,2
             [0.50, 0.38, 0.28],
-            # task=2 (High), team=2 (Excellent), faculty=0 (Not Approved), timeline=0,1,2
+            # task=2 (High), team=2 (Excellent), timeline=0,1,2
             [0.40, 0.28, 0.18],
-            # task=2 (High), team=0 (Poor), faculty=1 (Approved), timeline=0,1,2
-            [0.55, 0.45, 0.35],
-            # task=2 (High), team=1 (Good), faculty=1 (Approved), timeline=0,1,2
-            [0.40, 0.28, 0.18],
-            # task=2 (High), team=2 (Excellent), faculty=1 (Approved), timeline=0,1,2
-            [0.25, 0.15, 0.08],
         ]
         
         # Flatten the failure probabilities
@@ -218,8 +190,8 @@ class ProjectCompletionPredictor:
             variable='project_completion',
             variable_card=2,
             values=cpd_values,
-            evidence=['task_progress', 'team_collaboration', 'faculty_approval', 'timeline_adherence'],
-            evidence_card=[3, 3, 2, 3]
+            evidence=['task_progress', 'team_collaboration', 'timeline_adherence'],
+            evidence_card=[3, 3, 3]
         )
     
     def validate_input(self, evidence: Dict[str, Any]) -> Dict[str, Any]:
@@ -238,7 +210,7 @@ class ProjectCompletionPredictor:
         if not self.config.get('validation_enabled', True):
             return evidence
         
-        required_variables = ['task_progress', 'team_collaboration', 'faculty_approval', 'timeline_adherence']
+        required_variables = ['task_progress', 'team_collaboration', 'timeline_adherence']
         
         # Check for missing variables
         missing_vars = [var for var in required_variables if var not in evidence]
@@ -249,7 +221,6 @@ class ProjectCompletionPredictor:
         validation_rules = {
             'task_progress': [0, 1, 2],
             'team_collaboration': [0, 1, 2],
-            'faculty_approval': [0, 1],
             'timeline_adherence': [0, 1, 2]
         }
         
@@ -267,8 +238,7 @@ class ProjectCompletionPredictor:
         Predict project completion probability given evidence
         
         Args:
-            evidence: Dictionary with keys: task_progress, team_collaboration, 
-                     faculty_approval, timeline_adherence
+            evidence: Dictionary with keys: task_progress, team_collaboration, timeline_adherence
         
         Returns:
             Completion probability as float
@@ -319,16 +289,12 @@ class ProjectCompletionPredictor:
             team_score = evidence.get('team_collaboration', 0) / 2.0
             scores.append(team_score)
             
-            # Faculty approval contribution
-            faculty_score = evidence.get('faculty_approval', 0)
-            scores.append(faculty_score)
-            
             # Timeline adherence contribution
             timeline_score = evidence.get('timeline_adherence', 0) / 2.0
             scores.append(timeline_score)
             
             # Weighted average (can be improved with domain knowledge)
-            weights = [0.3, 0.25, 0.25, 0.2]  # task_progress has higher weight
+            weights = [0.4, 0.3, 0.3]  # task_progress has higher weight
             fallback_prob = sum(w * s for w, s in zip(weights, scores))
             
             return max(0.1, min(0.9, fallback_prob))  # Constrain to reasonable range

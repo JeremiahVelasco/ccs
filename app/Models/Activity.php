@@ -20,7 +20,7 @@ class Activity extends Model
         'end_date',
         'priority',
         'is_flexible', // can be rescheduled automatically
-        'category',
+        'category', //  meeting, event, defense, presentation, evaluation, other
     ];
 
     protected $casts = [

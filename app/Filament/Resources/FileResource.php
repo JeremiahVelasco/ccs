@@ -6,6 +6,7 @@ use App\Filament\Resources\FileResource\Pages;
 use App\Filament\Resources\FileResource\RelationManagers;
 use App\Models\File;
 use App\Models\Project;
+use App\Models\Task;
 use Filament\Forms;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Hidden;
@@ -14,9 +15,11 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Columns\CheckboxColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\Auth;
 
@@ -55,12 +58,27 @@ class FileResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->query(function (Builder $query) {
+                if (Auth::user()->isStudent()) {
+                    $user = Auth::user();
+                    $query = Task::where('project_id', $user->group->project->id);
+
+                    return $query;
+                }
+
+                return Task::all();
+            })
+            ->recordUrl(
+                fn(Model $file): string => FileResource::getUrl('edit', ['record' => $file->id]),
+            )
             ->columns([
                 TextColumn::make('title'),
+                TextColumn::make('project.title')
+                    ->hidden(fn() => Auth::user()->isStudent())
+                    ->label('Project'),
                 TextColumn::make('description')
                     ->limit(30),
                 TextColumn::make('file_link'),
-                TextColumn::make('file_path'),
             ])
             ->filters([
                 //

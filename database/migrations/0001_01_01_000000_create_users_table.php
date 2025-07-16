@@ -22,7 +22,9 @@ return new class extends Migration
             $table->string('password')->default(Hash::make('password'));
             $table->foreignId('group_id')->nullable();
             $table->string('course')->nullable();
+            $table->string('section')->nullable();
             $table->string('group_role')->nullable();
+            $table->string('school_year')->nullable();
             $table->rememberToken();
             $table->timestamps();
         });

@@ -68,7 +68,20 @@ class UserResource extends Resource
                     ->options([
                         'BSITWMA' => 'BSITWMA',
                         'BSITAGD' => 'BSITAGD',
+                        'BSITDC' => 'BSITDC'
                     ])
+                    ->visible(function ($get) {
+                        $roleIds = $get('roles');
+                        if (!$roleIds) return false;
+
+                        // Handle both single ID and array of IDs
+                        $roleIds = is_array($roleIds) ? $roleIds : [$roleIds];
+
+                        $roles = \App\Models\Role::whereIn('id', $roleIds)->get();
+                        return $roles->contains('name', 'student');
+                    }),
+                TextInput::make('section')
+                    ->label('Section')
                     ->visible(function ($get) {
                         $roleIds = $get('roles');
                         if (!$roleIds) return false;
@@ -112,15 +125,15 @@ class UserResource extends Resource
                 TextColumn::make('roles.name'),
                 TextColumn::make('student_id')
                     ->label('Student ID')
-                    ->visible(fn($record) => $record?->hasRole('student'))
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->visible(fn($record) => $record?->hasRole('student')),
                 TextColumn::make('course')
-                    ->visible(fn($record) => $record?->hasRole('student'))
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    ->visible(fn($record) => $record?->hasRole('student')),
+                TextColumn::make('section')
+                    ->label('Section')
+                    ->visible(fn($record) => $record?->hasRole('student')),
                 TextColumn::make('group_role')
                     ->label('Group Role')
                     ->visible(fn($record) => $record?->hasRole('student'))
-                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 SelectFilter::make('roles')
@@ -133,11 +146,11 @@ class UserResource extends Resource
                 SelectFilter::make('group_role')
                     ->label('Group Role')
                     ->options([
-                        'project_manager' => 'Project Manager',
-                        'developer' => 'Developer',
-                        'designer' => 'Designer',
-                        'tester' => 'Tester',
-                        'other' => 'Other',
+                        'Project Manager' => 'Project Manager',
+                        'Developer' => 'Developer',
+                        'Designer' => 'Designer',
+                        'Tester' => 'Tester',
+                        'Other' => 'Other',
                     ])
                     ->native(false),
                 SelectFilter::make('course')

@@ -2,19 +2,24 @@
 
 namespace App\Filament\Pages;
 
-use Filament\Pages\Page;
-use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\Textarea;
-use Filament\Forms\Components\Select;
+use App\Models\Group;
+use App\Models\Project as ProjectModel;
+use App\Models\User;
+use App\Services\ProjectPredictionService;
+use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Grid;
+use Filament\Forms\Components\Section;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Slider;
+use Filament\Forms\Components\TagsInput;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Notifications\Notification;
-use Illuminate\Support\Facades\DB;
+use Filament\Pages\Page;
 use Illuminate\Support\Facades\Auth;
-use App\Models\Project as ProjectModel;
-use App\Models\Group;
-use App\Services\ProjectPredictionService;
+use Illuminate\Support\Facades\DB;
 
 class Project extends Page
 {
@@ -64,27 +69,17 @@ class Project extends Page
         return $form
             ->schema([
                 FileUpload::make('logo')
-                    ->image()
-                    ->avatar()
                     ->hiddenLabel()
-                    ->alignCenter()
-                    ->disk('public')
-                    ->downloadable()
-                    ->previewable()
                     ->directory('project-logos')
-                    ->visibility('public')
-                    ->imagePreviewHeight('100'),
-
-                TextInput::make('title')
-                    ->required()
-                    ->maxLength(255)
-                    ->placeholder('Enter project title'),
-
+                    ->avatar()
+                    ->columnSpanFull()
+                    ->alignCenter(),
+                TextInput::make('title'),
                 Textarea::make('description')
-                    ->required()
-                    ->maxLength(1000)
-                    ->placeholder('Project description')
-                    ->rows(5),
+                    ->helperText('Maximum: 150 characters')
+                    ->maxLength(150)
+                    ->rows(2)
+                    ->columnSpanFull(),
             ])
             ->statePath('data');
     }
@@ -200,24 +195,4 @@ class Project extends Page
                 ->send();
         }
     }
-
-    public function refreshPrediction()
-    {
-        $predictionService = new ProjectPredictionService();
-        $prediction = $predictionService->predictCompletion($this->project);
-
-        $this->project->update([
-            'completion_probability' => $prediction['probability'],
-            'last_prediction_at' => now(),
-            'prediction_version' => ($this->project->prediction_version ?? 0) + 1
-        ]);
-
-        Notification::make()
-            ->title('Success')
-            ->body('Prediction refreshed successfully!')
-            ->success()
-            ->send();
-    }
-
-    public function uploadFile() {}
 }

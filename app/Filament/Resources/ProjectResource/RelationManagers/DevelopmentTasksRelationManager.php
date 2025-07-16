@@ -34,7 +34,14 @@ class DevelopmentTasksRelationManager extends RelationManager
             ->recordTitleAttribute('title')
             ->columns([
                 TextColumn::make('title'),
-                TextColumn::make('status'),
+                TextColumn::make('status')
+                    ->badge()
+                    ->color(fn($state) => match ($state) {
+                        'Done' => 'success',
+                        'For Review' => 'warning',
+                        'To-do' => 'danger',
+                        'In Progress' => 'info',
+                    }),
             ])
             ->filters([
                 //

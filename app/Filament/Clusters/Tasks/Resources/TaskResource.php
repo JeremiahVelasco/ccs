@@ -60,6 +60,7 @@ class TaskResource extends Resource
                     ->rows(3)
                     ->maxLength(255),
                 FileUpload::make('file_path')
+                    ->label('File')
                     ->columnSpanFull()
                     ->disk('public')
                     ->directory('task-files')

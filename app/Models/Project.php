@@ -2,7 +2,9 @@
 
 namespace App\Models;
 
+use App\Services\ProjectPredictionService;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Auth;
 
 class Project extends Model
 {
@@ -156,5 +158,19 @@ class Project extends Model
     public function latestPrediction()
     {
         return $this->hasOne(PredictionHistory::class)->latestOfMany();
+    }
+
+    public function predictCompletion()
+    {
+        $predictionService = new ProjectPredictionService();
+        $prediction = $predictionService->predictCompletion($this);
+
+        $this->update([
+            'completion_probability' => $prediction['probability'],
+            'last_prediction_at' => now(),
+            'prediction_version' => ($this->project->prediction_version ?? 0) + 1
+        ]);
+
+        return $prediction;
     }
 }

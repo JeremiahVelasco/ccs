@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use App\Services\ProjectPredictionService;
 
 class Task extends Model
 {
@@ -25,6 +26,11 @@ class Task extends Model
     protected $casts = [
         'assigned_to' => 'array'
     ];
+
+    public function __construct(array $attributes = [])
+    {
+        parent::__construct($attributes);
+    }
 
     public function project()
     {
@@ -49,6 +55,12 @@ class Task extends Model
     public function markAsDone()
     {
         $this->status = 'Approved';
+        $this->is_faculty_approved = true;
+        $project = Project::find($this->project_id);
+        $projectPredictionService = app(ProjectPredictionService::class);
+        $prediction = $projectPredictionService->predictCompletion($project);
+        $project->completion_probability = $prediction['probability'];
+        $project->save();
 
         $this->save();
     }
@@ -56,6 +68,12 @@ class Task extends Model
     public function revertApproval()
     {
         $this->status = 'For Review';
+        $this->is_faculty_approved = false;
+        $project = $this->project;
+        $projectPredictionService = app(ProjectPredictionService::class);
+        $prediction = $projectPredictionService->predictCompletion($project);
+        $project->completion_probability = $prediction['probability'];
+        $project->save();
 
         $this->save();
     }

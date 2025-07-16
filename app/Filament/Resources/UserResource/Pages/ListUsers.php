@@ -18,19 +18,4 @@ class ListUsers extends ListRecords
             Actions\CreateAction::make(),
         ];
     }
-
-    // public function getTabs(): array
-    // {
-    //     return [
-    //         'student' => Tab::make()
-    //             ->modifyQueryUsing(fn(Builder $query) => $query->where('role', 'student')),
-    //         'faculty' => Tab::make()
-    //             ->modifyQueryUsing(fn(Builder $query) => $query->where('role', 'faculty')),
-    //         'admin' => Tab::make()
-    //             ->modifyQueryUsing(fn(Builder $query) => $query->where('role', 'super_admin')),
-    //         'director' => Tab::make()
-    //             ->modifyQueryUsing(fn(Builder $query) => $query->where('role', 'director')),
-    //         'all' => Tab::make(),
-    //     ];
-    // }
 }

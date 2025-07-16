@@ -29,8 +29,11 @@ class User extends Authenticatable implements FilamentUser, HasAvatar
         'email',
         'password',
         'group_id',
-        'course',
+        'course', // BSITAGD, BSITWMA, BSITDC
+        'section',
+        'school_year',
         'group_role',
+        'status', // Active, Inactive
     ];
 
     /**
@@ -139,5 +142,10 @@ class User extends Authenticatable implements FilamentUser, HasAvatar
     public function projects()
     {
         return $this->hasMany(Project::class);
+    }
+
+    public function hasProject()
+    {
+        return $this->group ? $this->group->project()->exists() : false;
     }
 }

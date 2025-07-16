@@ -44,12 +44,21 @@ class DevelopmentTasks extends Page implements HasForms, HasTable
 
     public function table(Table $table): Table
     {
+        $query = Task::development();
+
+        if (Auth::user()->isStudent()) {
+            $query->where('project_id', Auth::user()->group->project->id);
+        }
+
         return $table
-            ->query(Task::development()->where('project_id', Auth::user()->group->project->id))
+            ->query($query)
             ->reorderable('sort')
             ->columns([
                 TextInputColumn::make('title'),
-                TextInputColumn::make('deadline'),
+                TextColumn::make('deadline')
+                    ->date()
+                    ->color(fn($record) => $record->deadline && abs(Carbon::parse($record->deadline)->diffInDays(now())) <= 5 ? 'danger' : 'success')
+                    ->description(fn($record) => $record->deadline ? Carbon::parse($record->deadline)->diffForHumans() : null),
                 SelectColumn::make('status')
                     ->options([
                         'To-do' => 'To-do',
@@ -64,7 +73,7 @@ class DevelopmentTasks extends Page implements HasForms, HasTable
                     ->tooltip('Edit Task')
                     ->form([
                         Hidden::make('project_id')
-                            ->default(Auth::user()->group->id),
+                            ->default(Auth::user()->group->id ?? null),
                         TextInput::make('title')
                             ->required()
                             ->maxLength(255),
@@ -94,7 +103,7 @@ class DevelopmentTasks extends Page implements HasForms, HasTable
                 CreateAction::make()
                     ->form([
                         Hidden::make('project_id')
-                            ->default(Auth::user()->group->id),
+                            ->default(Auth::user()->group->id ?? null),
                         TextInput::make('title')
                             ->required()
                             ->maxLength(255),
@@ -116,5 +125,10 @@ class DevelopmentTasks extends Page implements HasForms, HasTable
                     DeleteBulkAction::make(),
                 ]),
             ]);
+    }
+
+    public function getHasProjectProperty()
+    {
+        return Auth::user()->hasProject();
     }
 }

@@ -35,7 +35,18 @@ class DocumentationTasksRelationManager extends RelationManager
             ->recordUrl(fn(Model $record) => TaskResource::getUrl('edit', ['record' => $record->id]))
             ->columns([
                 TextColumn::make('title'),
-                TextColumn::make('status'),
+                TextColumn::make('file_path')
+                    ->label('Has file')
+                    ->formatStateUsing(fn($state) => $state ? 'Yes' : 'No')
+                    ->color(fn($state) => $state ? 'success' : 'danger'),
+                TextColumn::make('status')
+                    ->badge()
+                    ->color(fn($state) => match ($state) {
+                        'Approved' => 'success',
+                        'For Review' => 'warning',
+                        'To-do' => 'danger',
+                        'In Progress' => 'info',
+                    }),
             ])
             ->paginated(false)
             ->filters([

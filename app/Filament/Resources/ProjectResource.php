@@ -9,6 +9,7 @@ use App\Filament\Resources\ProjectResource\RelationManagers\DocumentationTasksRe
 
 use App\Models\CriterionGrade;
 use App\Models\Group;
+use App\Models\IndividualRubricEvaluation;
 use App\Models\Project;
 use App\Models\ProjectGrade;
 use App\Models\GroupRubricEvaluation;
@@ -208,6 +209,17 @@ class ProjectResource extends Resource
                                 fn(string $state): string =>
                                 $state === '100' ? 'success' : ((intval($state) >= 50) ? 'warning' : 'danger')
                             ),
+                        Infolists\Components\TextEntry::make('panelists')
+                            ->state(function ($record) {
+                                if (empty($record->panelists)) {
+                                    return 'No panelists assigned';
+                                }
+
+                                $panelists = User::whereIn('id', $record->panelists)->pluck('name');
+                                return $panelists->implode(', ');
+                            }),
+                        Infolists\Components\TextEntry::make('awards')
+                            ->listWithLineBreaks(),
                     ])
                     ->columns(2),
 
@@ -308,20 +320,6 @@ class ProjectResource extends Resource
                                         };
                                     }),
 
-                                Infolists\Components\TextEntry::make('faculty_approval_feature')
-                                    ->label('Faculty Approval')
-                                    ->state(function ($record) {
-                                        $service = app(ProjectPredictionService::class);
-                                        $features = $service->calculateProjectFeatures($record);
-                                        return $features['faculty_approval'] ? 'Approved' : 'Pending';
-                                    })
-                                    ->badge()
-                                    ->color(function ($record) {
-                                        $service = app(ProjectPredictionService::class);
-                                        $features = $service->calculateProjectFeatures($record);
-                                        return $features['faculty_approval'] ? 'success' : 'warning';
-                                    }),
-
                                 Infolists\Components\TextEntry::make('timeline_adherence_feature')
                                     ->label('Timeline Status')
                                     ->state(function ($record) {
@@ -359,25 +357,72 @@ class ProjectResource extends Resource
                     ])
                     ->collapsible(),
 
-                Infolists\Components\Section::make('Panelists & Grading')
+                Infolists\Components\Section::make('Grading')
                     ->schema([
-                        Infolists\Components\TextEntry::make('panelists')
-                            ->state(function ($record) {
-                                if (empty($record->panelists)) {
-                                    return 'No panelists assigned';
-                                }
-
-                                $panelists = User::whereIn('id', $record->panelists)->pluck('name');
-                                return $panelists->implode(', ');
-                            }),
                         Infolists\Components\TextEntry::make('final_grade')
                             ->badge()
                             ->color(
                                 fn(?string $state): string =>
                                 $state ? (floatval($state) >= 75 ? 'success' : 'warning') : 'gray'
                             ),
-                        Infolists\Components\TextEntry::make('awards')
-                            ->listWithLineBreaks(),
+                        Infolists\Components\Section::make('Member Individual Grades')
+                            ->schema([
+                                Infolists\Components\TextEntry::make('member_individual_grades')
+                                    ->label('Member Individual Grades')
+                                    ->state(function ($record) {
+                                        // Get all group members
+                                        if (!$record->group) {
+                                            return 'No group found';
+                                        }
+
+                                        $groupMembers = $record->group->members;
+
+                                        if (!$groupMembers || $groupMembers->isEmpty()) {
+                                            return 'No group members found';
+                                        }
+
+                                        $memberGrades = [];
+
+                                        foreach ($groupMembers as $member) {
+                                            // Get all individual rubric evaluations for this member in this project
+                                            $evaluations = IndividualRubricEvaluation::where('project_id', $record->id)
+                                                ->where('student_id', $member->id)
+                                                ->get();
+
+                                            if ($evaluations->isNotEmpty()) {
+                                                // Calculate average scores for each criterion
+                                                $criteriaAverages = [
+                                                    'subject_mastery' => $evaluations->avg('subject_mastery'),
+                                                    'ability_to_answer_questions' => $evaluations->avg('ability_to_answer_questions'),
+                                                    'delivery' => $evaluations->avg('delivery'),
+                                                    'verbal_and_nonverbal_ability' => $evaluations->avg('verbal_and_nonverbal_ability'),
+                                                    'grooming' => $evaluations->avg('grooming'),
+                                                ];
+
+                                                // Calculate overall average
+                                                $overallAverage = collect($criteriaAverages)->avg();
+
+                                                $memberGrades[] = sprintf(
+                                                    '👤 %s: %.2f/5.0
+    📚 Subject Mastery: %.2f | 💬 Q&A: %.2f | 🎤 Delivery: %.2f
+    🗣️ Verbal Skills: %.2f | ✨ Grooming: %.2f',
+                                                    $member->name,
+                                                    $overallAverage,
+                                                    $criteriaAverages['subject_mastery'],
+                                                    $criteriaAverages['ability_to_answer_questions'],
+                                                    $criteriaAverages['delivery'],
+                                                    $criteriaAverages['verbal_and_nonverbal_ability'],
+                                                    $criteriaAverages['grooming']
+                                                );
+                                            } else {
+                                                $memberGrades[] = $member->name . ': No evaluations yet';
+                                            }
+                                        }
+
+                                        return $memberGrades;
+                                    })
+                                    ->listWithLineBreaks(),
+                            ])
                     ])
                     ->columns(2),
             ]);

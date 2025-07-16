@@ -3,11 +3,22 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class StudentDashboardController extends Controller
 {
     public function index()
     {
+        $user = Auth::user();
+
+        // Check if user has a project
+        if (!$user->group || !$user->group->project) {
+            return response()->json([
+                'error' => 'No project found',
+                'message' => 'You need to be assigned to a project to view the dashboard.'
+            ], 404);
+        }
+
         $projectProgress = $this->getProjectProgress();
         $taskStats = $this->getTaskStats();
         $progressOverview = $this->getProgressOverview();
@@ -21,7 +32,7 @@ class StudentDashboardController extends Controller
 
     protected function getProjectProgress()
     {
-        $user = auth()->user();
+        $user = Auth::user();
         $project = $user->group->project;
 
         return $project->progress;
@@ -29,7 +40,7 @@ class StudentDashboardController extends Controller
 
     protected function getTaskStats()
     {
-        $user = auth()->user();
+        $user = Auth::user();
         $project = $user->group->project;
 
         // Get documentation stats in one optimized query
@@ -65,7 +76,7 @@ class StudentDashboardController extends Controller
 
     protected function getProgressOverview()
     {
-        $user = auth()->user();
+        $user = Auth::user();
         $project = $user->group->project;
 
         $tasks = $project->tasks()->get();

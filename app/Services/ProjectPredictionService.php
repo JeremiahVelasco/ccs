@@ -48,27 +48,16 @@ class ProjectPredictionService
 
         // Fixed: Use correct field name and improved collaboration calculation
         $recentActivities = $project->tasks()
-            ->where('is_faculty_approved', true)
+            ->whereIn('status', ['Approved', 'Done'])
             ->where('created_at', '>=', now()->subWeeks(2))
             ->count();
 
-        // Alternative: Include all recent task activities
-        $recentTaskUpdates = $project->tasks()
-            ->where('updated_at', '>=', now()->subWeeks(2))
-            ->count();
-
-        $collaborationScore = $teamSize > 0 ? min(($recentActivities + $recentTaskUpdates) / ($teamSize * 5), 1) : 0;
+        $collaborationScore = $teamSize > 0 ? min(($recentActivities) / ($teamSize * 5), 1) : 0;
         $teamCollaboration = match (true) {
             $collaborationScore >= 0.7 => 2, // Excellent
             $collaborationScore >= 0.4 => 1, // Good
             default => 0 // Poor
         };
-
-        // Fixed: Faculty approval status - use correct field name
-        $approvedTasks = $project->tasks()
-            ->where('is_faculty_approved', true)
-            ->count();
-        $facultyApproval = ($totalTasks > 0 && $approvedTasks / $totalTasks >= 0.5) ? 1 : 0;
 
         // Fixed: Timeline adherence calculation - handle missing deadline gracefully
         $timelineAdherence = $this->calculateTimelineAdherence($project, $taskProgress);
@@ -76,7 +65,6 @@ class ProjectPredictionService
         return [
             'task_progress' => $taskProgressLevel,
             'team_collaboration' => $teamCollaboration,
-            'faculty_approval' => $facultyApproval,
             'timeline_adherence' => $timelineAdherence
         ];
     }
@@ -95,7 +83,7 @@ class ProjectPredictionService
         $overdueTasks = $project->tasks()
             ->whereNotNull('deadline')
             ->where('deadline', '<', now())
-            ->where('status', '!=', 'Approved')
+            ->whereIn('status', ['To-do', 'In Progress', 'For Review'])
             ->count();
 
         $totalTasksWithDeadlines = $project->tasks()
@@ -340,14 +328,12 @@ class ProjectPredictionService
         // Extract feature values
         $taskProgress = $features['task_progress'] ?? 0;
         $teamCollaboration = $features['team_collaboration'] ?? 0;
-        $facultyApproval = $features['faculty_approval'] ?? 0;
         $timelineAdherence = $features['timeline_adherence'] ?? 0;
 
         // Weighted scoring based on project management research
         $weights = [
             'task_progress' => 0.35,        // Most important
             'team_collaboration' => 0.25,
-            'faculty_approval' => 0.25,
             'timeline_adherence' => 0.15
         ];
 
@@ -355,7 +341,6 @@ class ProjectPredictionService
         $normalizedScores = [
             'task_progress' => $taskProgress / 2.0,
             'team_collaboration' => $teamCollaboration / 2.0,
-            'faculty_approval' => $facultyApproval / 1.0,
             'timeline_adherence' => $timelineAdherence / 2.0
         ];
 
@@ -369,25 +354,13 @@ class ProjectPredictionService
         $adjustments = 0;
 
         // Positive combinations
-        if ($taskProgress >= 2 && $facultyApproval >= 1) {
-            $adjustments += 0.1; // High progress + approval boost
-        }
-
         if ($teamCollaboration >= 2 && $timelineAdherence >= 1) {
             $adjustments += 0.08; // Good team + timeline boost
-        }
-
-        if ($taskProgress >= 1 && $teamCollaboration >= 1 && $facultyApproval >= 1) {
-            $adjustments += 0.05; // All-around decent performance
         }
 
         // Negative combinations
         if ($taskProgress === 0 && $timelineAdherence === 0) {
             $adjustments -= 0.15; // Poor progress + behind schedule penalty
-        }
-
-        if ($teamCollaboration === 0 && $facultyApproval === 0) {
-            $adjustments -= 0.1; // Poor collaboration + no approval penalty
         }
 
         // Final probability calculation
@@ -424,7 +397,7 @@ class ProjectPredictionService
      */
     private function validateFeatures(array $features): void
     {
-        $requiredFields = ['task_progress', 'team_collaboration', 'faculty_approval', 'timeline_adherence'];
+        $requiredFields = ['task_progress', 'team_collaboration', 'timeline_adherence'];
 
         foreach ($requiredFields as $field) {
             if (!isset($features[$field])) {
@@ -439,10 +412,6 @@ class ProjectPredictionService
 
         if (!in_array($features['team_collaboration'], [0, 1, 2])) {
             throw new \InvalidArgumentException('team_collaboration must be 0, 1, or 2');
-        }
-
-        if (!in_array($features['faculty_approval'], [0, 1])) {
-            throw new \InvalidArgumentException('faculty_approval must be 0 or 1');
         }
 
         if (!in_array($features['timeline_adherence'], [0, 1, 2])) {
@@ -477,10 +446,6 @@ class ProjectPredictionService
 
         if ($features['team_collaboration'] === 0) {
             $recommendations[] = 'Increase team communication and collaborative activities';
-        }
-
-        if ($features['faculty_approval'] === 0) {
-            $recommendations[] = 'Submit more tasks for faculty review and approval';
         }
 
         if ($features['timeline_adherence'] === 0) {

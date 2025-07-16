@@ -23,9 +23,12 @@ class Group extends Model
         'name',
         'leader_id',
         'group_code',
+        'course', // BSITAGD, BSITWMA, BSITDC
+        'section',
         'description',
         'adviser',
-        'status'
+        'status', // Active, Inactive
+        'school_year'
     ];
 
     /**
@@ -77,5 +80,53 @@ class Group extends Model
     public function hasProject(): bool
     {
         return $this->project()->exists();
+    }
+
+    public static function computeMaxGroupsAndMembers()
+    {
+        // Use consistent school year format: current year - next year
+        $currentYear = now()->year;
+        $schoolYear = $currentYear . '-' . ($currentYear + 1);
+
+        // Get the current number of groups
+        $currentGroupsCount = self::query()
+            ->where('school_year', $schoolYear)
+            ->count();
+
+        // Get all students for the current school year
+        $students = User::query()
+            ->role('student')
+            ->where('school_year', $schoolYear)
+            ->count();
+
+        // Prevent division by zero - if no groups exist, return a default max group size
+        if ($currentGroupsCount === 0) {
+            return 5; // Default maximum group size when no groups exist
+        }
+
+        $maxGroupSize = $students / $currentGroupsCount; // 33 / 7 = 4.714285714285714 -> 5
+
+        return $maxGroupSize;
+    }
+
+    /**
+     * Get groups that have the current school year, active status, and don't exceed group limits
+     */
+    public static function getAvailableGroups()
+    {
+        $groups = self::query()
+            ->where('status', 'Active')
+            ->where('course', auth()->user()->course)
+            ->with('members') // Load members relationship for count
+            ->get()
+            ->filter(function ($group) {
+                // Get the maximum group size
+                $maxGroupSize = self::computeMaxGroupsAndMembers();
+
+                // Check if the group doesn't exceed the limit
+                return $group->members->count() < ceil($maxGroupSize);
+            });
+
+        return $groups;
     }
 }
