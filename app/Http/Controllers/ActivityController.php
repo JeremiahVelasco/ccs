@@ -78,7 +78,7 @@ class ActivityController extends Controller
     public function show(string $id): JsonResponse
     {
         try {
-            $activity = Activity::findOrFail($id);
+            $activity = Activity::with('user')->findOrFail($id);
             return response()->json([
                 'status' => 'success',
                 'data' => $activity
