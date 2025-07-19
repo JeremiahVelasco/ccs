@@ -82,7 +82,7 @@ class Group extends Model
         return $this->project()->exists();
     }
 
-    public static function computeMaxGroupsAndMembers()
+    public static function computeMaxGroupsAndMembers($course)
     {
         // Use consistent school year format: current year - next year
         $currentYear = now()->year;
@@ -91,12 +91,16 @@ class Group extends Model
         // Get the current number of groups
         $currentGroupsCount = self::query()
             ->where('school_year', $schoolYear)
+            ->where('status', 'Active')
+            ->where('course', $course)
             ->count();
 
         // Get all students for the current school year
         $students = User::query()
             ->role('student')
             ->where('school_year', $schoolYear)
+            ->where('status', 'Active')
+            ->where('course', $course)
             ->count();
 
         // Prevent division by zero - if no groups exist, return a default max group size
@@ -121,7 +125,7 @@ class Group extends Model
             ->get()
             ->filter(function ($group) {
                 // Get the maximum group size
-                $maxGroupSize = self::computeMaxGroupsAndMembers();
+                $maxGroupSize = self::computeMaxGroupsAndMembers(auth()->user()->course);
 
                 // Check if the group doesn't exceed the limit
                 return $group->members->count() < ceil($maxGroupSize);

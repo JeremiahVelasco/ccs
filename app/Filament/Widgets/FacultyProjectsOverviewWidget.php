@@ -22,14 +22,11 @@ class FacultyProjectsOverviewWidget extends StatsOverviewWidget
         // Projects where faculty is a panelist
         $panelistProjects = Project::whereJsonContains('panelists', $user->id)->count();
 
+        // Active Groups
+        $activeGroups = Group::where('status', 'Active')->count();
+
         // Active projects in system (for context)
         $activeProjects = Project::whereIn('status', ['In Progress', 'For Review'])->count();
-
-        // // Projects pending grading
-        // $pendingGrading = Project::whereJsonContains('panelists', $user->id)
-        //     ->whereDoesntHave('grades', function ($query) use ($user) {
-        //         $query->where('panel_id', $user->id);
-        //     })->count();
 
         return [
             Stat::make('Advised Projects', $advisedProjects)
@@ -42,10 +39,11 @@ class FacultyProjectsOverviewWidget extends StatsOverviewWidget
                 ->descriptionIcon('heroicon-m-clipboard-document-check')
                 ->color('info'),
 
-            // Stat::make('Pending Grades', $pendingGrading)
-            //     ->description('Projects awaiting your evaluation')
-            //     ->descriptionIcon('heroicon-m-exclamation-triangle')
-            //     ->color($pendingGrading > 0 ? 'warning' : 'success'),
+            Stat::make('Active Groups', $activeGroups)
+                ->description('Groups under your guidance')
+                ->descriptionIcon('heroicon-m-user-group')
+                ->color('success'),
+
 
             Stat::make('Active Projects', $activeProjects)
                 ->description('All active projects in system')
@@ -56,6 +54,6 @@ class FacultyProjectsOverviewWidget extends StatsOverviewWidget
 
     protected function getColumns(): int
     {
-        return 3;
+        return 4;
     }
 }

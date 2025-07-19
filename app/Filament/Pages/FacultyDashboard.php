@@ -5,6 +5,7 @@ namespace App\Filament\Pages;
 use Filament\Pages\Dashboard\Concerns\HasFiltersForm;
 use Filament\Pages\Page;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Contracts\Support\Htmlable;
 
 class FacultyDashboard extends Page
 {
@@ -14,15 +15,18 @@ class FacultyDashboard extends Page
 
     protected static string $view = 'filament.pages.faculty-dashboard';
 
-    protected static ?string $title = 'Faculty Dashboard';
-
-    protected static ?string $navigationLabel = 'Dashboard';
+    protected static ?string $title = 'Dashboard';
 
     protected static ?int $navigationSort = -2;
 
     public static function canAccess(): bool
     {
         return Auth::user()?->hasRole('faculty') ?? false;
+    }
+
+    public function getTitle(): string | Htmlable
+    {
+        return 'Welcome, ' . (Auth::user()?->name . '!' ?? 'Faculty');
     }
 
     public function getWidgets(): array

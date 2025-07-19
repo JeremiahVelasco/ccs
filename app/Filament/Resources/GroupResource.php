@@ -110,8 +110,20 @@ class GroupResource extends Resource
                     }),
                 Select::make('adviser')
                     ->searchable()
+                    ->helperText('Available Advisers: ' . User::role('faculty')
+                        ->withCount(['advised' => function ($query) {
+                            $query->where('status', 'Active');
+                        }])
+                        ->having('advised_count', '<=', 2)
+                        ->pluck('name')
+                        ->implode(', '))
                     ->options(function () {
-                        return User::role('faculty')->pluck('name', 'id');
+                        return User::role('faculty')
+                            ->withCount(['advised' => function ($query) {
+                                $query->where('status', 'Active');
+                            }])
+                            ->having('advised_count', '<=', 2)
+                            ->pluck('name', 'id');
                     }),
             ]);
     }
@@ -127,6 +139,10 @@ class GroupResource extends Resource
                 TextColumn::make('section'),
                 TextColumn::make('school_year'),
                 TextColumn::make('group_code'),
+                TextColumn::make('members_count')
+                    ->label('Members')
+                    ->counts('members')
+                    ->suffix(fn($record) => ' / ' . $record->computeMaxGroupsAndMembers($record->course)),
                 TextColumn::make('status')
                     ->badge()
                     ->color(fn($record) => $record->status === 'Active' ? 'success' : 'danger'),

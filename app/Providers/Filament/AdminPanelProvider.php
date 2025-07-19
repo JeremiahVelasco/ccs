@@ -34,8 +34,8 @@ class AdminPanelProvider extends PanelProvider
             ->path('')
             ->login()
             ->registration()
-            ->profile(isSimple: false)
             ->passwordReset()
+            ->revealablePasswords()
             // ->emailVerification()
             ->colors([
                 'primary' => '#007a37',
@@ -53,7 +53,10 @@ class AdminPanelProvider extends PanelProvider
                 //
             ])
             ->navigationItems([
-                //
+                NavigationItem::make('test')
+                    ->label('Test')
+                    // ->url(fn(): string => route('filament.admin.pages.test'))
+                    ->icon('heroicon-o-calendar')
             ])
             ->userMenuItems([
                 MenuItem::make()

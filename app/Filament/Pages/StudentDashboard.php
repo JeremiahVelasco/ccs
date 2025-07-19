@@ -6,6 +6,7 @@ use App\Filament\Widgets\CalendarWidget;
 use Filament\Pages\Dashboard\Concerns\HasFiltersForm;
 use Filament\Pages\Page;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Contracts\Support\Htmlable;
 
 class StudentDashboard extends Page
 {
@@ -15,15 +16,18 @@ class StudentDashboard extends Page
 
     protected static string $view = 'filament.pages.student-dashboard';
 
-    protected static ?string $title = 'Student Dashboard';
-
-    protected static ?string $navigationLabel = 'Dashboard';
+    protected static ?string $title = 'Dashboard';
 
     protected static ?int $navigationSort = -2;
 
     public static function canAccess(): bool
     {
         return Auth::user()?->hasRole('student') ?? false;
+    }
+
+    public function getTitle(): string | Htmlable
+    {
+        return 'Welcome, ' . (Auth::user()?->name . '!' ?? 'Student!');
     }
 
     public function getWidgets(): array

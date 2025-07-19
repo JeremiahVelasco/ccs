@@ -144,12 +144,21 @@ class ProjectResource extends Resource
                     ->sortable(),
             ])
             ->filters([
-                Tables\Filters\SelectFilter::make('panelist_status')
+                Tables\Filters\SelectFilter::make('panelists')
                     ->options([
                         'Complete' => 'Complete',
                         'Incomplete' => 'Incomplete',
                     ])
-                    ->label('Panelists Status'),
+                    ->label('Panelists Status')
+                    ->query(function (Builder $query, array $data): Builder {
+                        return $query->when(
+                            $data['value'] === 'Complete',
+                            fn(Builder $query) => $query->whereRaw('JSON_LENGTH(panelists) >= 3')
+                        )->when(
+                            $data['value'] === 'Incomplete',
+                            fn(Builder $query) => $query->whereRaw('JSON_LENGTH(panelists) < 3 OR panelists IS NULL')
+                        );
+                    }),
                 Tables\Filters\SelectFilter::make('awards')
                     ->options([
                         '🏆 Best Capstone' => '🏆 Best Capstone',

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Pages;
 
+use App\Models\Activity;
 use App\Models\Group as GroupModel;
 use App\Models\User;
 use Filament\Forms\Components\Select;
@@ -144,12 +145,15 @@ class Group extends Page
         $user = Auth::user();
         $group = $user->group;
 
-        $meeting = Meeting::create([
-            'group_id' => $group->id,
-            'user_id' => $user->id,
+        $meetingActivity = Activity::create([
             'title' => 'Meeting with Adviser',
+            'user_id' => $user->id,
             'description' => 'Meeting with adviser',
-            'date' => now(),
+            'start_date' => now(),
+            'end_date' => now()->addHours(1),
+            'priority' => 'low',
+            'is_flexible' => false,
+            'category' => 'meeting',
         ]);
     }
 

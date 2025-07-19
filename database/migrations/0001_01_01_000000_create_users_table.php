@@ -25,6 +25,7 @@ return new class extends Migration
             $table->string('section')->nullable();
             $table->string('group_role')->nullable();
             $table->string('school_year')->nullable();
+            $table->string('status')->default('Active');
             $table->rememberToken();
             $table->timestamps();
         });

@@ -270,4 +270,6 @@ class CalendarWidget extends FullCalendarWidget
             default => '#6B7280',                     // Gray
         };
     }
+
+    // TODO : Should be able to remove activity from calendar
 }
