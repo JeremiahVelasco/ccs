@@ -112,19 +112,39 @@ class GroupResource extends Resource
                 Select::make('adviser')
                     ->searchable()
                     ->helperText('Available Advisers: ' . User::role('faculty')
-                        ->withCount(['advised' => function ($query) {
-                            $query->where('status', 'Active');
-                        }])
-                        ->having('advised_count', '<=', 2)
+                        ->where(function ($query) {
+                            $query->whereDoesntHave('advised')
+                                ->orWhereHas('advised', function ($subQuery) {
+                                    $subQuery->where('status', 'Active');
+                                }, '<', 2);
+                        })
                         ->pluck('name')
                         ->implode(', '))
-                    ->options(function () {
-                        return User::role('faculty')
-                            ->withCount(['advised' => function ($query) {
-                                $query->where('status', 'Active');
-                            }])
-                            ->having('advised_count', '<=', 2)
-                            ->pluck('name', 'id');
+                    ->options(function (?Group $record) {
+                        $query = User::role('faculty');
+
+                        if ($record && $record->adviser) {
+                            // When editing, include the current adviser even if they have 2 or more groups
+                            $query->where(function ($subQuery) use ($record) {
+                                $subQuery->where('id', $record->adviser)
+                                    ->orWhere(function ($innerQuery) {
+                                        $innerQuery->whereDoesntHave('advised')
+                                            ->orWhereHas('advised', function ($advisedQuery) {
+                                                $advisedQuery->where('status', 'Active');
+                                            }, '<', 2);
+                                    });
+                            });
+                        } else {
+                            // When creating, only show faculty with less than 2 active groups
+                            $query->where(function ($subQuery) {
+                                $subQuery->whereDoesntHave('advised')
+                                    ->orWhereHas('advised', function ($advisedQuery) {
+                                        $advisedQuery->where('status', 'Active');
+                                    }, '<', 2);
+                            });
+                        }
+
+                        return $query->pluck('name', 'id');
                     }),
             ]);
     }
