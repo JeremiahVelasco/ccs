@@ -2,17 +2,24 @@
 
 namespace App\Filament\Pages;
 
+use App\Filament\Clusters\Tasks\Resources\TaskResource;
 use App\Filament\Resources\ProjectResource;
+use App\Models\Group;
 use App\Models\Project;
+use App\Models\Task;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Forms\Contracts\HasForms;
 use Filament\Pages\Dashboard;
 use Filament\Pages\Page;
+use Filament\Tables\Actions\Action;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
+use Filament\Tables\Enums\FiltersLayout;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage;
 
 class Repository extends Page implements HasForms, HasTable
 {
@@ -26,7 +33,15 @@ class Repository extends Page implements HasForms, HasTable
     public function table(Table $table): Table
     {
         return $table
-            ->query(Project::query()->where('status', 'Done'))
+            ->query(
+                Project::query()
+                    ->whereHas('tasks', function ($query) {
+                        $query->where('title', 'Final Documentation')
+                            ->where('type', 'documentation')
+                            ->whereNotNull('file_path')
+                            ->where('file_path', '!=', '');
+                    })
+            )
             ->recordUrl(
                 fn(Model $project): string => ProjectResource::getUrl('view', ['record' => $project->id]),
             )
@@ -35,8 +50,93 @@ class Repository extends Page implements HasForms, HasTable
                     ->searchable(),
                 TextColumn::make('description')
                     ->searchable(),
-                TextColumn::make('final_grade'),
+                TextColumn::make('final_grade')
+                    ->sortable(),
                 TextColumn::make('awards'),
+            ])
+            ->filters([
+                SelectFilter::make('course')
+                    ->options([
+                        'BSITWMA' => 'BSITWMA',
+                        'BSITAGD' => 'BSITAGD',
+                        'BSITDC' => 'BSITDC',
+                    ]),
+                SelectFilter::make('awards')
+                    ->options([
+                        '🏆 Best Capstone' => '🏆 Best Capstone',
+                        '💡 Most Innovative' => '💡 Most Innovative',
+                        '🖥️ Best Web App' => '🖥️ Best Web App',
+                        '📱 Best Mobile App' => '📱 Best Mobile App',
+                    ])
+                    ->label('Awards'),
+                SelectFilter::make('school_year')
+                    ->label('School Year')
+                    ->default((now()->year - 1) . '-' . now()->year)
+                    ->options(function () {
+                        return Group::distinct()
+                            ->whereNotNull('school_year')
+                            ->pluck('school_year', 'school_year')
+                            ->sort()
+                            ->toArray();
+                    })
+                    ->query(function ($query, $data) {
+                        // Only apply filter if a specific school year is selected
+                        if ($data && is_string($data) && strlen($data) > 0) {
+                            $query->whereHas('group', function ($q) use ($data) {
+                                $q->where('school_year', $data);
+                            });
+                        }
+                        // If $data is null, empty, or falsy, don't apply any filter (show all)
+                    }),
+            ], layout: FiltersLayout::AboveContent)
+            ->actions([
+                Action::make('view')
+                    ->hiddenLabel()
+                    ->url(function (Model $project): string {
+                        $finalDocTask = $project->tasks()
+                            ->where('title', 'Final Documentation')
+                            ->where('type', 'documentation')
+                            ->whereNotNull('file_path')
+                            ->first();
+
+                        return $finalDocTask ? Storage::url($finalDocTask->file_path) : '#';
+                    })
+                    ->openUrlInNewTab()
+                    ->icon('heroicon-m-eye')
+                    ->color('info')
+                    ->tooltip('View Final Documentation')
+                    ->visible(function (Model $project): bool {
+                        $finalDocTask = $project->tasks()
+                            ->where('title', 'Final Documentation')
+                            ->where('type', 'documentation')
+                            ->whereNotNull('file_path')
+                            ->first();
+
+                        return $finalDocTask && Storage::disk('public')->exists($finalDocTask->file_path);
+                    }),
+                Action::make('download')
+                    ->hiddenLabel()
+                    ->url(function (Model $project): string {
+                        $finalDocTask = $project->tasks()
+                            ->where('title', 'Final Documentation')
+                            ->where('type', 'documentation')
+                            ->whereNotNull('file_path')
+                            ->first();
+
+                        return $finalDocTask ? Storage::url($finalDocTask->file_path) : '#';
+                    })
+                    ->icon('heroicon-m-arrow-down-tray')
+                    ->color('success')
+                    ->tooltip('Download Final Documentation')
+                    ->visible(function (Model $project): bool {
+                        $finalDocTask = $project->tasks()
+                            ->where('title', 'Final Documentation')
+                            ->where('type', 'documentation')
+                            ->whereNotNull('file_path')
+                            ->first();
+
+                        return $finalDocTask && Storage::disk('public')->exists($finalDocTask->file_path);
+                    }),
             ]);
     }
 
