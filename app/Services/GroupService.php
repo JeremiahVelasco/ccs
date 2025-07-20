@@ -64,11 +64,7 @@ class GroupService
             ->with('members') // Load members relationship for count
             ->get()
             ->filter(function ($group) use ($user) {
-                // Get the maximum group size
-                $maxGroupSize = self::computeMaxGroupsAndMembers($user->course);
-
-                // Check if the group doesn't exceed the limit
-                return $group->members->count() < $maxGroupSize;
+                return $group->members->count();
             });
 
         return $groups;
