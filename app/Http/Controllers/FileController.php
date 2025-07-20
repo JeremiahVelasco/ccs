@@ -69,20 +69,41 @@ class FileController extends Controller
             $inlineExtensions = ['pdf', 'jpg', 'jpeg', 'png', 'gif', 'txt', 'doc', 'docx'];
 
             if (in_array($extension, $inlineExtensions)) {
-                return response()->file($filePath, [
-                    'Content-Type' => $mimeType,
-                    'Content-Disposition' => 'inline; filename="' . $fileName . '"',
-                    'Cache-Control' => 'no-cache, must-revalidate',
-                    'Pragma' => 'no-cache'
-                ]);
+                return response()->stream(
+                    function () use ($filePath) {
+                        $stream = fopen($filePath, 'rb');
+                        while (!feof($stream)) {
+                            echo fread($stream, 8192);
+                        }
+                        fclose($stream);
+                    },
+                    200,
+                    [
+                        'Content-Type' => $mimeType,
+                        'Content-Disposition' => 'inline; filename="' . $fileName . '"',
+                        'Cache-Control' => 'no-cache, must-revalidate',
+                        'Pragma' => 'no-cache',
+                        'X-Content-Type-Options' => 'nosniff'
+                    ]
+                );
             } else {
                 // For other file types, still try to display inline but with additional headers
-                return response()->file($filePath, [
-                    'Content-Type' => $mimeType,
-                    'Content-Disposition' => 'inline; filename="' . $fileName . '"',
-                    'X-Content-Type-Options' => 'nosniff',
-                    'Cache-Control' => 'no-cache, must-revalidate'
-                ]);
+                return response()->stream(
+                    function () use ($filePath) {
+                        $stream = fopen($filePath, 'rb');
+                        while (!feof($stream)) {
+                            echo fread($stream, 8192);
+                        }
+                        fclose($stream);
+                    },
+                    200,
+                    [
+                        'Content-Type' => $mimeType,
+                        'Content-Disposition' => 'inline; filename="' . $fileName . '"',
+                        'X-Content-Type-Options' => 'nosniff',
+                        'Cache-Control' => 'no-cache, must-revalidate'
+                    ]
+                );
             }
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             abort(404, 'Task not found');
