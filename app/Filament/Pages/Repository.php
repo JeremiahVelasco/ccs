@@ -56,6 +56,7 @@ class Repository extends Page implements HasForms, HasTable
                     ->sortable(),
                 TextColumn::make('awards'),
                 TextColumn::make('group.course')
+                    ->label('Course')
                     ->sortable()
                     ->searchable(),
             ])
