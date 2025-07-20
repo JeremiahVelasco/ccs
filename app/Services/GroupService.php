@@ -64,7 +64,7 @@ class GroupService
             ->with('members') // Load members relationship for count
             ->get()
             ->filter(function ($group) use ($user) {
-                return $group->members->count();
+                return $group->members->count() < 5;
             });
 
         return $groups;
