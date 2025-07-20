@@ -32,7 +32,7 @@ class FacultyDashboardController extends Controller
     {
         $user = auth()->user();
 
-        $groups = Group::where('adviser', $user->id)->get();
+        $groups = Group::where('adviser', $user->id)->where('status', 'Active')->get();
 
         return $groups;
     }
@@ -41,7 +41,7 @@ class FacultyDashboardController extends Controller
     {
         $user = auth()->user();
 
-        $projects = Project::where('panelists', $user->id)->get();
+        $projects = Project::where('panelists', $user->id)->where('status', '!=', 'Done')->get();
 
         return $projects;
     }

@@ -4,6 +4,7 @@ use App\Http\Controllers\ActivityController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EvaluationController;
+use App\Http\Controllers\FacultyDashboardController;
 use App\Http\Controllers\GroupController;
 use App\Http\Controllers\OpenAIController;
 use App\Http\Controllers\PanelistController;
@@ -18,6 +19,7 @@ use App\Http\Controllers\TaskController;
 use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+
 
 
 
@@ -151,7 +153,13 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/summary/{evaluableType}/{evaluableId}', [EvaluationController::class, 'getEvaluationSummary']);
     });
 
+    // Student Dashboard Routes
     Route::prefix('student-dashboard')->group(function () {
         Route::get('/', [StudentDashboardController::class, 'index']);
+    });
+
+    // Faculty Dashboard Routes
+    Route::prefix('faculty-dashboard')->group(function () {
+        Route::get('/', [FacultyDashboardController::class, 'index']);
     });
 });

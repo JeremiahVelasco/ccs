@@ -16,6 +16,7 @@ use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Tables\Contracts\HasTable;
 use Filament\Tables\Enums\FiltersLayout;
+use Filament\Tables\Filters\QueryBuilder;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Model;
@@ -35,6 +36,7 @@ class Repository extends Page implements HasForms, HasTable
         return $table
             ->query(
                 Project::query()
+                    ->with(['group', 'tasks'])
                     ->whereHas('tasks', function ($query) {
                         $query->where('title', 'Final Documentation')
                             ->where('type', 'documentation')
@@ -56,19 +58,21 @@ class Repository extends Page implements HasForms, HasTable
             ])
             ->filters([
                 SelectFilter::make('course')
+                    ->label('Course')
+                    ->default('BSITWMA')
                     ->options([
                         'BSITWMA' => 'BSITWMA',
                         'BSITAGD' => 'BSITAGD',
                         'BSITDC' => 'BSITDC',
-                    ]),
-                SelectFilter::make('awards')
-                    ->options([
-                        '🏆 Best Capstone' => '🏆 Best Capstone',
-                        '💡 Most Innovative' => '💡 Most Innovative',
-                        '🖥️ Best Web App' => '🖥️ Best Web App',
-                        '📱 Best Mobile App' => '📱 Best Mobile App',
                     ])
-                    ->label('Awards'),
+                    ->query(function ($query, $data) {
+                        if ($data) {
+                            $query->whereHas('group', function ($q) use ($data) {
+                                $q->where('course', $data);
+                            });
+                        }
+                        return $query;
+                    }),
                 SelectFilter::make('school_year')
                     ->label('School Year')
                     ->default((now()->year - 1) . '-' . now()->year)
@@ -80,13 +84,11 @@ class Repository extends Page implements HasForms, HasTable
                             ->toArray();
                     })
                     ->query(function ($query, $data) {
-                        // Only apply filter if a specific school year is selected
-                        if ($data && is_string($data) && strlen($data) > 0) {
+                        return $query->when($data, function ($query, $data) {
                             $query->whereHas('group', function ($q) use ($data) {
                                 $q->where('school_year', $data);
                             });
-                        }
-                        // If $data is null, empty, or falsy, don't apply any filter (show all)
+                        });
                     }),
             ], layout: FiltersLayout::AboveContent)
             ->actions([
