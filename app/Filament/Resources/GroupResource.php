@@ -141,8 +141,8 @@ class GroupResource extends Resource
                 TextColumn::make('group_code'),
                 TextColumn::make('members_count')
                     ->label('Members')
-                    ->counts('members')
-                    ->suffix(fn($record) => ' / ' . Group::computeMaxGroupsAndMembers($record->course)),
+                    ->counts('members'),
+                // ->suffix(fn($record) => ' / ' . Group::computeMaxGroupsAndMembers($record->course)),
                 TextColumn::make('status')
                     ->badge()
                     ->color(fn($record) => $record->status === 'Active' ? 'success' : 'danger'),
