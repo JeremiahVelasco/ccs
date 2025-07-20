@@ -44,11 +44,18 @@ class DevelopmentTasks extends Page implements HasForms, HasTable
 
     public function table(Table $table): Table
     {
-        $query = Task::development()->where('project_id', Auth::user()->group->project->id);
+        $query = Task::development();
+
+        // Only add project filter if user has a project
+        if ($this->hasProject) {
+            $query->where('project_id', Auth::user()->group->project->id);
+        } else {
+            // Return empty query when no project exists
+            $query->whereRaw('1 = 0');
+        }
 
         return $table
             ->query($query)
-            ->reorderable('sort')
             ->columns([
                 TextInputColumn::make('title'),
                 TextColumn::make('deadline')
