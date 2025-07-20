@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\GroupService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 
@@ -80,5 +81,10 @@ class Group extends Model
     public function hasProject(): bool
     {
         return $this->project()->exists();
+    }
+
+    public function getMaxGroupSize(): int
+    {
+        return GroupService::computeMaxGroupsAndMembers($this->course);
     }
 }
