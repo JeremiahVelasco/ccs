@@ -18,7 +18,7 @@ class ProjectPredictionService
     public function __construct()
     {
         $this->pythonScriptPath = storage_path('scripts/bayesian_predictor.py');
-        $this->cacheTimeMinutes = config('bayesian.cache_time_minutes', 30);
+        $this->cacheTimeMinutes = 10;
         $this->pythonExecutable = config('bayesian.python_executable', 'python3');
     }
 
