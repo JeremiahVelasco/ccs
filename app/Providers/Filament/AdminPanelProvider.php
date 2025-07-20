@@ -36,6 +36,7 @@ class AdminPanelProvider extends PanelProvider
             ->registration()
             ->passwordReset()
             ->revealablePasswords()
+            ->profile(isSimple: false)
             // ->emailVerification()
             ->colors([
                 'primary' => '#007a37',

@@ -3,11 +3,73 @@
 namespace App\Services;
 
 use App\Models\Activity;
+use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Auth;
 
 class PrioritySchedulerService
 {
+    /**
+     * Check if a date falls on a weekend
+     */
+    private function isWeekend(Carbon $date): bool
+    {
+        return $date->isWeekend();
+    }
+
+    public function scheduleMeeting(array $data, $group): array
+    {
+        // Get the adviser
+        $adviser = User::find($group->adviser);
+
+        if (!$adviser) {
+            return [
+                'success' => false,
+                'message' => 'Adviser not found.',
+            ];
+        }
+
+        // Set meeting duration to 1 hour
+        $meetingDuration = 60; // minutes
+
+        // Start looking from tomorrow to avoid scheduling meetings on the same day
+        $startDate = Carbon::tomorrow()->startOfDay()->addHours(8); // Start from 8 AM tomorrow
+
+        // Try to find the best available slot for the next 14 days
+        // First try to find a slot that works for the entire group
+        $bestSlot = $this->findBestGroupMeetingSlot($group, $startDate, $meetingDuration);
+
+        // If no group slot is available, fall back to just the adviser's availability
+        if (!$bestSlot) {
+            $bestSlot = $this->findBestMeetingSlot($adviser->id, $startDate, $meetingDuration);
+        }
+
+        if (!$bestSlot) {
+            return [
+                'success' => false,
+                'message' => 'No available time slots found for the next 14 days. Please try again later.',
+                'suggested_times' => $this->findAlternativeSlots($startDate, $startDate->copy()->addMinutes($meetingDuration), 5)
+            ];
+        }
+
+        // Prepare the meeting data for the user who requested the meeting
+        $meetingData = array_merge($data, [
+            'start_date' => $bestSlot['start'],
+            'end_date' => $bestSlot['end'],
+            'category' => 'meeting',
+            'priority' => Activity::PRIORITY_MEDIUM,
+            'is_flexible' => true,
+        ]);
+
+        // Schedule the meeting activity for the user who requested it
+        $result = $this->scheduleActivity($meetingData);
+
+        return $result;
+    }
+
+
+
     /**
      * Schedule a new activity with conflict resolution
      */
@@ -17,7 +79,15 @@ class PrioritySchedulerService
         $endDate = Carbon::parse($data['end_date']);
         $priority = $data['priority'] ?? Activity::PRIORITY_MEDIUM;
 
-        $userHasClass = Activity::where('user_id', auth()->user()->id)
+        // Check if the requested time falls on a weekend
+        if ($this->isWeekend($startDate) || $this->isWeekend($endDate)) {
+            return [
+                'success' => false,
+                'message' => 'Activities cannot be scheduled on weekends.',
+            ];
+        }
+
+        $userHasClass = Activity::where('user_id', Auth::user()->id)
             ->where('category', 'class')
             ->where('start_date', '<=', $startDate)
             ->where('end_date', '>=', $endDate)
@@ -260,6 +330,137 @@ class PrioritySchedulerService
     }
 
     /**
+     * Find the best available meeting slot for a specific user
+     */
+    private function findBestMeetingSlot(int $userId, Carbon $startDate, int $durationMinutes): ?array
+    {
+        $currentDate = $startDate->copy();
+        $maxDaysToCheck = 14; // Check next 14 days
+        $daysChecked = 0;
+
+        while ($daysChecked < $maxDaysToCheck) {
+            // Skip weekends
+            if ($this->isWeekend($currentDate)) {
+                $currentDate->addDay();
+                $daysChecked++;
+                continue;
+            }
+
+            // Define working hours (8 AM to 6 PM)
+            $dayStart = $currentDate->copy()->startOfDay()->addHours(8);
+            $dayEnd = $currentDate->copy()->startOfDay()->addHours(18);
+
+            // Check hourly slots within working hours
+            for ($hour = 0; $hour < 10; $hour++) { // 8 AM to 6 PM = 10 hours
+                $slotStart = $dayStart->copy()->addHours($hour);
+                $slotEnd = $slotStart->copy()->addMinutes($durationMinutes);
+
+                // Skip if the slot would extend beyond working hours
+                if ($slotEnd > $dayEnd) {
+                    continue;
+                }
+
+                // Check for conflicts for this specific user
+                $conflicts = Activity::where('user_id', $userId)
+                    ->where(function ($query) use ($slotStart, $slotEnd) {
+                        $query->where(function ($q) use ($slotStart, $slotEnd) {
+                            $q->where('start_date', '<', $slotEnd)
+                                ->where('end_date', '>', $slotStart)
+                                ->whereNotNull('start_date')
+                                ->whereNotNull('end_date');
+                        });
+                    })
+                    ->count();
+
+                if ($conflicts === 0) {
+                    return [
+                        'start' => $slotStart,
+                        'end' => $slotEnd,
+                        'day' => $slotStart->format('l'),
+                        'time' => $slotStart->format('g:i A'),
+                    ];
+                }
+            }
+
+            $currentDate->addDay();
+            $daysChecked++;
+        }
+
+        return null;
+    }
+
+    /**
+     * Find the best available meeting slot considering group members' availability
+     */
+    private function findBestGroupMeetingSlot($group, Carbon $startDate, int $durationMinutes): ?array
+    {
+        $currentDate = $startDate->copy();
+        $maxDaysToCheck = 14; // Check next 14 days
+        $daysChecked = 0;
+
+        // Get all group members including the adviser
+        $groupMembers = collect([$group->adviser])->merge($group->members->pluck('id'));
+
+        while ($daysChecked < $maxDaysToCheck) {
+            // Skip weekends
+            if ($this->isWeekend($currentDate)) {
+                $currentDate->addDay();
+                $daysChecked++;
+                continue;
+            }
+
+            // Define working hours (8 AM to 6 PM)
+            $dayStart = $currentDate->copy()->startOfDay()->addHours(8);
+            $dayEnd = $currentDate->copy()->startOfDay()->addHours(18);
+
+            // Check hourly slots within working hours
+            for ($hour = 0; $hour < 10; $hour++) { // 8 AM to 6 PM = 10 hours
+                $slotStart = $dayStart->copy()->addHours($hour);
+                $slotEnd = $slotStart->copy()->addMinutes($durationMinutes);
+
+                // Skip if the slot would extend beyond working hours
+                if ($slotEnd > $dayEnd) {
+                    continue;
+                }
+
+                // Check for conflicts for all group members
+                $hasConflicts = false;
+                foreach ($groupMembers as $memberId) {
+                    $conflicts = Activity::where('user_id', $memberId)
+                        ->where(function ($query) use ($slotStart, $slotEnd) {
+                            $query->where(function ($q) use ($slotStart, $slotEnd) {
+                                $q->where('start_date', '<', $slotEnd)
+                                    ->where('end_date', '>', $slotStart)
+                                    ->whereNotNull('start_date')
+                                    ->whereNotNull('end_date');
+                            });
+                        })
+                        ->count();
+
+                    if ($conflicts > 0) {
+                        $hasConflicts = true;
+                        break;
+                    }
+                }
+
+                if (!$hasConflicts) {
+                    return [
+                        'start' => $slotStart,
+                        'end' => $slotEnd,
+                        'day' => $slotStart->format('l'),
+                        'time' => $slotStart->format('g:i A'),
+                    ];
+                }
+            }
+
+            $currentDate->addDay();
+            $daysChecked++;
+        }
+
+        return null;
+    }
+
+    /**
      * Find alternative time slots
      */
     private function findAlternativeSlots(Carbon $preferredStart, Carbon $endDate, int $maxSuggestions = 3): array
@@ -270,8 +471,18 @@ class PrioritySchedulerService
         // Calculate the duration of the original activity
         $durationInMinutes = $preferredStart->diffInMinutes($endDate);
 
-        // Search for available slots in the next 7 days
-        for ($day = 0; $day < 7 && count($suggestions) < $maxSuggestions; $day++) {
+        // Search for available slots in the next 14 days (to account for weekends)
+        $daysChecked = 0;
+        $maxDaysToCheck = 14;
+
+        while ($daysChecked < $maxDaysToCheck && count($suggestions) < $maxSuggestions) {
+            // Skip weekends
+            if ($this->isWeekend($currentDate)) {
+                $currentDate->addDay();
+                $daysChecked++;
+                continue;
+            }
+
             $dayStart = $currentDate->copy()->startOfDay()->addHours(8); // Start from 8 AM
             $dayEnd = $currentDate->copy()->endOfDay()->subHours(2); // End at 10 PM
 
@@ -302,6 +513,7 @@ class PrioritySchedulerService
             }
 
             $currentDate->addDay();
+            $daysChecked++;
         }
 
         return $suggestions;

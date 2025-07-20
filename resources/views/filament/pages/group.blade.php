@@ -5,7 +5,7 @@
                 <div class="flex justify-between items-center mb-4">
                     <h2 class="text-xl font-semibold">Group Details</h2>
                     <x-filament::button color="primary" wire:click="requestMeeting">
-                        Request Meeting with Adviser
+                        Request Meeting w/ Adviser
                     </x-filament::button>
                 </div>
 

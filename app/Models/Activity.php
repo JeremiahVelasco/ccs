@@ -87,6 +87,14 @@ class Activity extends Model
     }
 
     /**
+     * Check if a date falls on a weekend
+     */
+    public static function isWeekend(Carbon $date): bool
+    {
+        return $date->isWeekend();
+    }
+
+    /**
      * Check if this activity conflicts with another activity
      */
     public function conflictsWith(Activity $other): bool
@@ -127,20 +135,27 @@ class Activity extends Model
     {
         $preferredEnd = $preferredStart->copy()->addMinutes($duration);
 
-        // Check if preferred slot is available
-        $conflicts = self::findConflicts($preferredStart, $preferredEnd)->get();
+        // Check if preferred slot is available and not on weekend
+        if (!$preferredStart->isWeekend()) {
+            $conflicts = self::findConflicts($preferredStart, $preferredEnd)->get();
 
-        if ($conflicts->isEmpty()) {
-            return $preferredStart;
+            if ($conflicts->isEmpty()) {
+                return $preferredStart;
+            }
         }
 
-        // If there are conflicts, try to find alternative slots
+        // If there are conflicts or it's a weekend, try to find alternative slots
         $alternatives = [];
 
         // Try slots before the preferred time
-        for ($i = 1; $i <= 24; $i++) { // Check 24 hours before
+        for ($i = 1; $i <= 72; $i++) { // Check 72 hours before (3 days)
             $altStart = $preferredStart->copy()->subHours($i);
             $altEnd = $altStart->copy()->addMinutes($duration);
+
+            // Skip weekends
+            if ($altStart->isWeekend()) {
+                continue;
+            }
 
             if (self::findConflicts($altStart, $altEnd)->count() === 0) {
                 $alternatives[] = $altStart;
@@ -149,9 +164,14 @@ class Activity extends Model
         }
 
         // Try slots after the preferred time
-        for ($i = 1; $i <= 24; $i++) { // Check 24 hours after
+        for ($i = 1; $i <= 72; $i++) { // Check 72 hours after (3 days)
             $altStart = $preferredStart->copy()->addHours($i);
             $altEnd = $altStart->copy()->addMinutes($duration);
+
+            // Skip weekends
+            if ($altStart->isWeekend()) {
+                continue;
+            }
 
             if (self::findConflicts($altStart, $altEnd)->count() === 0) {
                 $alternatives[] = $altStart;
