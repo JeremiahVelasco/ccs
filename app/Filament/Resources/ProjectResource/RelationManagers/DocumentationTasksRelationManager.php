@@ -63,7 +63,7 @@ class DocumentationTasksRelationManager extends RelationManager
                     ->modalDescription('Are you sure you\'d like to Approve this task?')
                     ->action(fn(Model $task) => $task->markAsDone($task->id)),
                 Action::make('Disapprove')
-                    ->visible(fn(Model $task) => $task->status === 'Approved')
+                    ->visible(fn(Model $task) => $task->status === 'Approved' && !auth()->user()->isStudent())
                     ->icon('heroicon-m-backward')
                     ->color('danger')
                     ->requiresConfirmation()
