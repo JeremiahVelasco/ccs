@@ -44,7 +44,7 @@ class DevelopmentTasks extends Page implements HasForms, HasTable
 
     public function table(Table $table): Table
     {
-        $query = Task::development();
+        $query = Task::query()->where('type', 'development')->where('project_id', Auth::user()->group->project->id);
 
         return $table
             ->query($query)
