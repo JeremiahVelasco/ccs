@@ -87,8 +87,9 @@ class GradingComponent extends Component
 
             Notification::make()
                 ->title('Project graded successfully')
-                ->body("Summary Score: {$scores['summary_total']} | Weighted Score: {$scores['weighted_score']}")
+                ->body(auth()->user()->name . ' has graded your project')
                 ->success()
+                ->sendToDatabase(User::where('group_id', $this->project->group_id)->get())
                 ->send();
 
             // Redirect back to projects page
