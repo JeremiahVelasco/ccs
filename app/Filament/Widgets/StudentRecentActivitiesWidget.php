@@ -20,7 +20,6 @@ class StudentRecentActivitiesWidget extends BaseWidget
             ->query(
                 Activity::query()
                     ->orderBy('start_date', 'desc')
-                    ->limit(5)
             )
             ->columns([
                 TextColumn::make('title')
@@ -36,6 +35,7 @@ class StudentRecentActivitiesWidget extends BaseWidget
                     ->sortable()
                     ->since(),
             ])
+            ->defaultPaginationPageOption(5)
             ->emptyStateHeading('No recent activities')
             ->emptyStateDescription('There are no recent activities or announcements.')
             ->emptyStateIcon('heroicon-o-calendar-days');
