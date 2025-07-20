@@ -78,7 +78,7 @@ class GroupService
      */
     public static function canAcceptMoreMembers(Group $group): bool
     {
-        $maxGroupSize = self::computeMaxGroupsAndMembers($group->course);
+        $maxGroupSize = 5;
         return $group->members->count() < $maxGroupSize;
     }
 
@@ -101,8 +101,8 @@ class GroupService
      */
     public static function getRemainingSlots(Group $group): int
     {
-        $maxGroupSize = self::computeMaxGroupsAndMembers($group->course);
-        $currentSize = self::getCurrentGroupSize($group);
+        $maxGroupSize = 5;
+        $currentSize = $group->members->count();
 
         return max(0, $maxGroupSize - $currentSize);
     }
