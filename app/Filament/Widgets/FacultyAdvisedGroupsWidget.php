@@ -27,7 +27,7 @@ class FacultyAdvisedGroupsWidget extends BaseWidget
             )
             ->recordUrl(
                 fn(Group $record): string =>
-                $record->project ? route('filament.admin.resources.projects.view', ['record' => $record->id]) : '#'
+                $record->project ? route('filament.admin.resources.projects.view', ['record' => $record->project->id]) : '#'
             )
             ->columns([
                 TextColumn::make('name')
