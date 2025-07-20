@@ -4,6 +4,7 @@ namespace App\Filament\Widgets;
 
 use App\Filament\Resources\ActivityResource;
 use App\Models\Activity;
+use App\Models\User;
 use App\Services\PrioritySchedulerService;
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\Grid;
@@ -15,6 +16,7 @@ use Filament\Forms\Components\Toggle;
 use Filament\Forms\Form;
 use Filament\Notifications\Notification;
 use Filament\Widgets\Widget;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Saade\FilamentFullCalendar\Actions;
 use Saade\FilamentFullCalendar\Widgets\FullCalendarWidget;
@@ -91,8 +93,9 @@ class CalendarWidget extends FullCalendarWidget
                     if ($result['success']) {
                         Notification::make()
                             ->title('Activity Scheduled')
-                            ->body($result['message'])
+                            ->body(auth()->user()->name . ' has scheduled for ' . $data['category'] . ' on ' . Carbon::parse($data['start_date'])->format('F d, Y | h:i A'))
                             ->success()
+                            ->sendToDatabase(User::all())
                             ->send();
 
                         if (!empty($result['rescheduled'])) {

@@ -132,8 +132,9 @@ class Project extends Page
 
             Notification::make()
                 ->title('Success')
-                ->body('Project created successfully!')
+                ->body(auth()->user()->name . ' created project ' . $this->project->name . ' for ' . $this->project->group->name)
                 ->success()
+                ->sendToDatabase(User::faculty()->get())
                 ->send();
         } catch (\Exception $e) {
             DB::rollBack();

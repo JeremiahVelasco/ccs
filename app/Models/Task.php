@@ -2,10 +2,11 @@
 
 namespace App\Models;
 
+use App\Services\ProjectPredictionService;
+use Filament\Notifications\Notification;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
-use App\Services\ProjectPredictionService;
 
 class Task extends Model
 {
@@ -76,6 +77,13 @@ class Task extends Model
         $project->save();
 
         $this->save();
+
+        Notification::make()
+            ->title('Task Approved')
+            ->body(auth()->user()->name . ' has approved task ' . $this->title)
+            ->success()
+            ->sendToDatabase(User::where('group_id', $this->project->group_id)->get())
+            ->send();
     }
 
     public function revertApproval()
@@ -89,5 +97,13 @@ class Task extends Model
         $project->save();
 
         $this->save();
+
+        Notification::make()
+            ->title('Task Disapproved')
+            ->body(auth()->user()->name . ' has disapproved task ' . $this->title)
+            ->warning()
+            ->success()
+            ->sendToDatabase(User::where('group_id', $this->project->group_id)->get())
+            ->send();
     }
 }
