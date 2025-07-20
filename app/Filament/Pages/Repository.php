@@ -80,30 +80,6 @@ class Repository extends Page implements HasForms, HasTable
                     }),
             ], layout: FiltersLayout::AboveContent)
             ->actions([
-                Action::make('view')
-                    ->hiddenLabel()
-                    ->url(function (Model $project): string {
-                        $finalDocTask = $project->tasks()
-                            ->where('title', 'Final Documentation')
-                            ->where('type', 'documentation')
-                            ->whereNotNull('file_path')
-                            ->first();
-
-                        return $finalDocTask ? route('view.task.file', $finalDocTask->id) : '#';
-                    })
-                    ->openUrlInNewTab()
-                    ->icon('heroicon-m-eye')
-                    ->color('info')
-                    ->tooltip('View Final Documentation')
-                    ->visible(function (Model $project): bool {
-                        $finalDocTask = $project->tasks()
-                            ->where('title', 'Final Documentation')
-                            ->where('type', 'documentation')
-                            ->whereNotNull('file_path')
-                            ->first();
-
-                        return $finalDocTask && Storage::disk('public')->exists($finalDocTask->file_path);
-                    }),
                 Action::make('download')
                     ->hiddenLabel()
                     ->url(function (Model $project): string {
