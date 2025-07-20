@@ -101,55 +101,6 @@
                                         </div>
                                         <p class="text-sm text-gray-400">{{ $member->email }}</p>
                                     </div>
-
-                                    @if($editingRole === $member->id)
-                                        <div class="flex items-center space-x-2 gap-x-2">
-                                            <select 
-                                                wire:model="editRoleData.role" 
-                                                class="text-xs rounded border-gray-300 dark:border-gray-600 dark:bg-gray-700"
-                                            >
-                                                @foreach ($groupRoles as $role)
-                                                    <option value="{{ $role }}">{{ $role }}</option>
-                                                @endforeach
-                                            </select>
-                                            <x-filament::button size="xs" wire:click="updateRole">
-                                                Save
-                                            </x-filament::button>
-                                            <x-filament::button color="gray" size="xs" wire:click="cancelEditRole">
-                                                Cancel
-                                            </x-filament::button>
-                                        </div>
-                                    @else
-                                        <div class="flex items-center space-x-2">
-                                            @if($member->id === $groupInfo->leader_id)
-                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200">
-                                                    Leader
-                                                </span>
-                                            @elseif($member->group_role === 'co-leader')
-                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-                                                    Co-Leader
-                                                </span>
-                                            @else
-                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200">
-                                                    Member
-                                                </span>
-                                            @endif
-
-                                            <div class="gap-2">
-                                                @if(auth()->user()->isLeader() && auth()->user()->group->leader_id === auth()->user()->id && $member->id !== $groupInfo->leader_id)
-                                                    <x-filament::button size="xs" color="gray" wire:click="editRole({{ $member->id }})">
-                                                        Edit Role
-                                                    </x-filament::button>
-                                                @endif
-
-                                                @if(auth()->user()->isLeader() && auth()->user()->group->leader_id === auth()->user()->id && $member->id !== $groupInfo->leader_id)
-                                                    <x-filament::button size="xs" color="danger" wire:click="removeMember({{ $member->id }})">
-                                                        Remove Member
-                                                    </x-filament::button>
-                                                @endif
-                                            </div>
-                                        </div>
-                                    @endif
                                 </div>
                             @endforeach
                         </div>

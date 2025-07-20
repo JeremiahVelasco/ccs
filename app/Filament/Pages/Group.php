@@ -90,44 +90,6 @@ class Group extends Page
         $this->groupInfo = $group->load('members', 'leader', 'adviser');
     }
 
-    public function editRole($memberId)
-    {
-        $user = Auth::user();
-
-        // Only group leader can edit roles
-        if (!$user->isLeader() || $user->group->leader_id !== $user->id) {
-            Notification::make()
-                ->title('Only group leaders can edit member roles')
-                ->danger()
-                ->send();
-            return;
-        }
-
-        $member = User::find($memberId);
-
-        if (!$member || $member->group_id !== $user->group_id) {
-            Notification::make()
-                ->title('Member not found')
-                ->danger()
-                ->send();
-            return;
-        }
-
-        // Don't allow editing the leader's own role
-        if ($member->id === $user->group->leader_id) {
-            Notification::make()
-                ->title('Cannot edit group leader role')
-                ->danger()
-                ->send();
-            return;
-        }
-
-        $this->editingRole = $memberId;
-        $this->editRoleData = [
-            'role' => $member->group_role
-        ];
-    }
-
     public function getAvailableGroupsProperty()
     {
         return GroupModel::getAvailableGroups();
