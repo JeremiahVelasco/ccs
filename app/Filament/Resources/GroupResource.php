@@ -160,6 +160,9 @@ class GroupResource extends Resource
                 TextColumn::make('section'),
                 TextColumn::make('school_year'),
                 TextColumn::make('group_code'),
+                TextColumn::make('adviser')
+                    ->label('Adviser')
+                    ->formatStateUsing(fn($state) => User::find($state)?->name),
                 TextColumn::make('members_count')
                     ->label('Members')
                     ->counts('members'),

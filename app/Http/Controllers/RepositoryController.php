@@ -12,7 +12,14 @@ class RepositoryController extends Controller
      */
     public function index()
     {
-        $projects = Project::query()->where('status', 'Done')->get();
+        $projects = Project::query()
+            ->whereHas('tasks', function ($query) {
+                $query->where('title', 'Final Documentation')
+                    ->where('type', 'documentation')
+                    ->whereNotNull('file_path')
+                    ->where('file_path', '!=', '');
+            })
+            ->get();
 
         return response()->json($projects);
     }
