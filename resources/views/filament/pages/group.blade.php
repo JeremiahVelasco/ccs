@@ -86,7 +86,7 @@
 
                     <div class="border border-gray-200 rounded-lg p-2">
                         <div class="flex justify-between items-center mb-2">
-                            <h3 class="text-lg font-medium">Members ({{ $groupInfo->members->count() }}/{{ $this->maxGroupSize }})</h3>
+                            <h3 class="text-lg font-medium">Members ({{ $groupInfo->members->count() }})</h3>
                         </div>
 
                         <div class="mt-2 space-y-2">
