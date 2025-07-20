@@ -8,7 +8,7 @@
                         Request Meeting with Adviser
                     </x-filament::button>
                 </div>
-                
+
                 <div class="space-y-4">
                     <div class="grid md:grid-cols-2 gap-4">
                         <div>
@@ -36,90 +36,59 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <div class="grid md:grid-cols-2 gap-4">
                         <div>
                             <h3 class="text-lg font-medium">Group Leader</h3>
                             <p>{{ $groupInfo->leader->name ?? 'No leader' }}</p>
                         </div>
-                        
+
                         <div>
                             <h3 class="text-lg font-medium">Status</h3>
                             <div>
-                                @if($groupInfo->status === 'pending')
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200">
-                                        Pending
-                                    </span>
-                                @elseif($groupInfo->status === 'approved')
+                                @if($groupInfo->status === 'Active')
                                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
-                                        Approved
+                                        Active
                                     </span>
-                                @elseif($groupInfo->status === 'rejected')
+                                @elseif($groupInfo->status === 'Inactive')
                                     <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200">
-                                        Rejected
+                                        Inactive
                                     </span>
                                 @endif
                             </div>
                         </div>
                     </div>
-                    
+
                     <div class="grid md:grid-cols-2 gap-4">
                         <div>
                             <h3 class="text-lg font-medium">Course</h3>
-                            <p>{{ auth()->user()->course ?? 'Not specified' }}</p>
+                            <p>{{ $groupInfo->course ?? 'Not specified' }}</p>
                         </div>
-                        
+
                         <div>
                             <h3 class="text-lg font-medium">Adviser</h3>
                             <p>
-                                @if($groupInfo->hasAdviser())
-                                    {{ $groupInfo->adviserUser->name }}
+                                @if($groupAdviser)
+                                    {{ $groupAdviser }}
                                 @else
                                     <span class="text-gray-500 dark:text-gray-400">Not assigned yet</span>
                                 @endif
                             </p>
                         </div>
                     </div>
-                    
+
                     @if($groupInfo->description)
                         <div>
                             <h3 class="text-lg font-medium">Description</h3>
                             <p>{{ $groupInfo->description }}</p>
                         </div>
                     @endif 
-                    
+
                     <div class="border border-gray-200 rounded-lg p-2">
                         <div class="flex justify-between items-center mb-2">
                             <h3 class="text-lg font-medium">Members ({{ $groupInfo->members->count() }}/{{ $this->maxGroupSize }})</h3>
                         </div>
-                        
-                        @if($addingMember)
-                            <div class="mb-4 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700/30 rounded-lg">
-                                <h4 class="text-md font-medium mb-3">Add New Member</h4>
-                                <form wire:submit="addMember" class="space-y-3">
-                                    <div>
-                                        <select 
-                                            wire:model="addMemberData.user_id" 
-                                            class="w-full rounded-md border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-300"
-                                        >
-                                            <option value="">Choose a student...</option>
-                                            @foreach($this->availableStudents as $id => $name)
-                                                <option value="{{ $id }}">{{ $name }}</option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-                                    <div class="flex gap-x-2">
-                                        <x-filament::button type="submit" size="sm">
-                                            Add Member
-                                        </x-filament::button>
-                                        <x-filament::button color="gray" size="sm" wire:click="cancelAddMember">
-                                            Cancel
-                                        </x-filament::button>
-                                    </div>
-                                </form>
-                            </div>
-                        @endif
-                        
+
                         <div class="mt-2 space-y-2">
                             @foreach($groupInfo->members as $member)
                                 <div class="flex items-center space-x-2 p-2 rounded-lg">
@@ -132,7 +101,7 @@
                                         </div>
                                         <p class="text-sm text-gray-400">{{ $member->email }}</p>
                                     </div>
-                                    
+
                                     @if($editingRole === $member->id)
                                         <div class="flex items-center space-x-2 gap-x-2">
                                             <select 
@@ -165,14 +134,14 @@
                                                     Member
                                                 </span>
                                             @endif
-                                            
+
                                             <div class="gap-2">
                                                 @if(auth()->user()->isLeader() && auth()->user()->group->leader_id === auth()->user()->id && $member->id !== $groupInfo->leader_id)
                                                     <x-filament::button size="xs" color="gray" wire:click="editRole({{ $member->id }})">
                                                         Edit Role
                                                     </x-filament::button>
                                                 @endif
-    
+
                                                 @if(auth()->user()->isLeader() && auth()->user()->group->leader_id === auth()->user()->id && $member->id !== $groupInfo->leader_id)
                                                     <x-filament::button size="xs" color="danger" wire:click="removeMember({{ $member->id }})">
                                                         Remove Member

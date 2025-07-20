@@ -33,6 +33,7 @@ class Group extends Page
     public $addingMember = false;
     public $addMemberData = [];
     public $groupRoles = [];
+    public $groupAdviser = null;
 
     public function mount(): void
     {
@@ -41,8 +42,9 @@ class Group extends Page
 
         if ($group) {
             $this->hasGroup = true;
-            $this->groupInfo = $group->load('members');
+            $this->groupInfo = $group->load('members', 'leader', 'adviser');
             $this->groupRoles = $this->groupInfo->members->pluck('group_role')->unique();
+            $this->groupAdviser = User::find($group->adviser)->name;
         }
     }
 
@@ -84,7 +86,7 @@ class Group extends Page
 
         $this->reset('data');
         $this->hasGroup = true;
-        $this->groupInfo = $group->load('members');
+        $this->groupInfo = $group->load('members', 'leader', 'adviser');
     }
 
     public function editRole($memberId)
@@ -125,11 +127,6 @@ class Group extends Page
         ];
     }
 
-    public function createProject()
-    {
-        return redirect()->route('filament.resources.project.create');
-    }
-
     public function getAvailableGroupsProperty()
     {
         return GroupModel::getAvailableGroups();
@@ -145,13 +142,15 @@ class Group extends Page
         $user = Auth::user();
         $group = $user->group;
 
+        // TODO : FIX THIS
+
         $meetingActivity = Activity::create([
-            'title' => 'Meeting with Adviser',
+            'title' => $group->name . ' - Meeting Request with Adviser',
             'user_id' => $user->id,
-            'description' => 'Meeting with adviser',
+            'description' => $group->name . ' - Requested a meeting with Adviser',
             'start_date' => now(),
             'end_date' => now()->addHours(1),
-            'priority' => 'low',
+            'priority' => 'medium',
             'is_flexible' => false,
             'category' => 'meeting',
         ]);

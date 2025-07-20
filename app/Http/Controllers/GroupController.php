@@ -88,4 +88,14 @@ class GroupController extends Controller
 
         return response()->json(['message' => 'Group deleted successfully']);
     }
+
+    public function fetchAvailableGroups()
+    {
+        $groups = Group::query()
+            ->where('course', auth()->user()->course)
+            ->where('status', 'Active')
+            ->get();
+
+        return response()->json($groups);
+    }
 }

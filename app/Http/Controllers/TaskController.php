@@ -32,7 +32,11 @@ class TaskController extends Controller
             return response()->json(['error' => 'No project found for your group'], 404);
         }
 
-        $tasks = Task::where('project_id', $project->id)->where('type', 'documentation')->with('assignedTo')->get();
+        $tasks = Task::where('project_id', $project->id)->where('type', 'documentation')->get();
+        // Load assigned users for each task
+        foreach ($tasks as $task) {
+            $task->assigned_users = $task->assignedToUsers;
+        }
         return response()->json($tasks);
     }
 
@@ -48,7 +52,11 @@ class TaskController extends Controller
             return response()->json(['error' => 'No project found for your group'], 404);
         }
 
-        $tasks = Task::where('project_id', $project->id)->where('type', 'development')->with('assignedTo')->get();
+        $tasks = Task::where('project_id', $project->id)->where('type', 'development')->get();
+        // Load assigned users for each task
+        foreach ($tasks as $task) {
+            $task->assigned_users = $task->assignedToUsers;
+        }
         return response()->json($tasks);
     }
 
@@ -126,7 +134,8 @@ class TaskController extends Controller
             ]);
 
             // Load relationships for response
-            $task->load('project', 'assignedTo');
+            $task->load('project');
+            $task->assigned_users = $task->assignedToUsers;
 
             return response()->json([
                 'success' => true,
@@ -152,7 +161,7 @@ class TaskController extends Controller
     public function show(string $id): JsonResponse
     {
         try {
-            $task = Task::with('project', 'assignedTo')->find($id);
+            $task = Task::with('project')->find($id);
 
             if (!$task) {
                 return response()->json([
@@ -172,7 +181,8 @@ class TaskController extends Controller
 
             $responseData = [
                 'task' => $task,
-                'file_url' => $task->file_path ? Storage::url($task->file_path) : null
+                'file_url' => $task->file_path ? Storage::url($task->file_path) : null,
+                'assigned_users' => $task->assignedToUsers
             ];
 
             return response()->json([
@@ -269,11 +279,14 @@ class TaskController extends Controller
                 'file_path' => $filePath,
             ]);
 
+            $updatedTask = $task->fresh();
+            $updatedTask->assigned_users = $updatedTask->assignedToUsers;
+
             return response()->json([
                 'success' => true,
                 'message' => 'Task updated successfully',
                 'data' => [
-                    'task' => $task->fresh(),
+                    'task' => $updatedTask,
                     'file_url' => $fileUrl,
                     'project' => $task->project->only(['id', 'title'])
                 ]

@@ -80,10 +80,10 @@ class StudentDashboardController extends Controller
         $project = $user->group->project;
 
         $tasks = $project->tasks()->get();
-        $todoTasks = $tasks->where('status', 'To Do')->count();
+        $todoTasks = $tasks->where('status', 'To-do')->count();
         $inProgressTasks = $tasks->where('status', 'In Progress')->count();
         $forReviewTasks = $tasks->where('status', 'For Review')->count();
-        $approvedTasks = $tasks->where('status', 'Approved')->count();
+        $approvedTasks = $tasks->whereIn('status', ['Approved', 'Done'])->count();
 
         return [
             'todoTasks' => $todoTasks,

@@ -11,12 +11,14 @@ use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\ProjectPredictionController;
 use App\Http\Controllers\RepositoryController;
 use App\Http\Controllers\RubricController;
+use App\Http\Controllers\StudentDashboardController;
 use App\Http\Controllers\StudentGroupController;
 use App\Http\Controllers\StudentProjectController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+
 
 
 
@@ -90,17 +92,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/groups/create-group', [GroupController::class, 'store']);
     Route::put('/groups/{groupId}/update', [GroupController::class, 'update']);
     Route::delete('/groups/{groupId}/delete', [GroupController::class, 'destroy']);
+    Route::get('/groups/available-groups', [GroupController::class, 'fetchAvailableGroups']);
 
     // Student's Group Routes
     Route::get('/my-group', [StudentGroupController::class, 'index']);
-    Route::post('/my-group/create-group', [StudentGroupController::class, 'store']);
     Route::put('/my-group/update', [StudentGroupController::class, 'update']);
-    Route::delete('/my-group/delete', [StudentGroupController::class, 'destroy']);
     Route::get('/my-group/students-without-group', [StudentGroupController::class, 'getStudentsWithoutGroup']);
-    Route::post('/my-group/add-member', [StudentGroupController::class, 'addMember']);
-    Route::post('/my-group/remove-member', [StudentGroupController::class, 'removeMember']);
     Route::post('/my-group/join-group', [StudentGroupController::class, 'joinGroup']);
-    Route::post('/my-group/leave-group', [StudentGroupController::class, 'leaveGroup']);
 
     // Student's Project Routes
     Route::get('/my-project', [StudentProjectController::class, 'index']);
@@ -151,5 +149,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
         // Evaluation summaries
         Route::get('/summary/{evaluableType}/{evaluableId}', [EvaluationController::class, 'getEvaluationSummary']);
+    });
+
+    Route::prefix('student-dashboard')->group(function () {
+        Route::get('/', [StudentDashboardController::class, 'index']);
     });
 });

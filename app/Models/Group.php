@@ -49,7 +49,7 @@ class Group extends Model
 
     public function adviser()
     {
-        return $this->hasOne(User::class, 'id');
+        return $this->belongsTo(User::class, 'adviser');
     }
 
     public function leader()
@@ -74,7 +74,7 @@ class Group extends Model
 
     public function hasAdviser(): bool
     {
-        return !is_null($this->group_adviser_id);
+        return !is_null($this->adviser);
     }
 
     public function hasProject(): bool

@@ -42,7 +42,6 @@ class GroupingService
         return $group;
     }
 
-    // TODO : FUNCTIONS
     public function availableAdvisers()
     {
         $advisers = User::where('role', 'adviser')->get();

@@ -27,6 +27,8 @@ class Task extends Model
         'assigned_to' => 'array'
     ];
 
+    // Removed appends to avoid issues with the custom accessor
+
     public function __construct(array $attributes = [])
     {
         parent::__construct($attributes);
@@ -39,7 +41,18 @@ class Task extends Model
 
     public function assignedTo()
     {
-        return $this->hasMany(User::class);
+        if (!$this->assigned_to) {
+            return collect();
+        }
+        return User::whereIn('id', $this->assigned_to);
+    }
+
+    public function getAssignedToUsersAttribute()
+    {
+        if (!$this->assigned_to) {
+            return collect();
+        }
+        return User::whereIn('id', $this->assigned_to)->get();
     }
 
     public function scopeDevelopment($query)
