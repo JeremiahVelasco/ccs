@@ -64,10 +64,26 @@ class FileController extends Controller
                 $mimeType = $mimeTypes[$extension] ?? $mimeType;
             }
 
-            return response()->file($filePath, [
-                'Content-Type' => $mimeType,
-                'Content-Disposition' => 'inline; filename="' . $fileName . '"'
-            ]);
+            // Force inline display for common document types
+            $extension = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
+            $inlineExtensions = ['pdf', 'jpg', 'jpeg', 'png', 'gif', 'txt', 'doc', 'docx'];
+
+            if (in_array($extension, $inlineExtensions)) {
+                return response()->file($filePath, [
+                    'Content-Type' => $mimeType,
+                    'Content-Disposition' => 'inline; filename="' . $fileName . '"',
+                    'Cache-Control' => 'no-cache, must-revalidate',
+                    'Pragma' => 'no-cache'
+                ]);
+            } else {
+                // For other file types, still try to display inline but with additional headers
+                return response()->file($filePath, [
+                    'Content-Type' => $mimeType,
+                    'Content-Disposition' => 'inline; filename="' . $fileName . '"',
+                    'X-Content-Type-Options' => 'nosniff',
+                    'Cache-Control' => 'no-cache, must-revalidate'
+                ]);
+            }
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             abort(404, 'Task not found');
         } catch (\Exception $e) {
