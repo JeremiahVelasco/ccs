@@ -36,21 +36,50 @@ class FileResource extends Resource
         return $form
             ->schema([
                 TextInput::make('title')
+                    ->required()
+                    ->maxLength(255)
                     ->columnSpanFull(),
-                Hidden::make('project_id') // Use Hidden instead of TextInput
+                Hidden::make('project_id')
                     ->default(function () {
                         $user = Auth::user();
-                        // Make sure this actually returns a value
                         return Project::where('group_id', $user->group_id)->first()?->id;
                     }),
                 Textarea::make('description')
+                    ->maxLength(1000)
+                    ->rows(3)
                     ->columnSpanFull(),
                 TextInput::make('file_link')
+                    ->label('External Link (Optional)')
+                    ->url()
+                    ->helperText('Add a link to an external file (Google Drive, Dropbox, etc.)')
                     ->columnSpanFull(),
                 FileUpload::make('file_path')
-                    ->label('Upload file')
+                    ->label('Upload File')
                     ->disk('public')
                     ->directory('project-files')
+                    ->visibility('public')
+                    ->preserveFilenames()
+                    ->previewable()
+                    ->downloadable()
+                    ->openable()
+                    ->acceptedFileTypes([
+                        'application/pdf',
+                        'application/msword',
+                        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                        'application/vnd.ms-excel',
+                        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                        'application/vnd.ms-powerpoint',
+                        'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+                        'text/plain',
+                        'text/csv',
+                        'image/jpeg',
+                        'image/png',
+                        'image/gif',
+                        'application/zip',
+                        'application/x-rar-compressed'
+                    ])
+                    ->maxSize(10240) // 10MB
+                    ->helperText('Supported formats: PDF, DOC, DOCX, XLS, XLSX, PPT, PPTX, TXT, CSV, JPG, PNG, GIF, ZIP, RAR (Max: 10MB)')
                     ->columnSpanFull(),
             ]);
     }
@@ -61,30 +90,74 @@ class FileResource extends Resource
             ->query(function (Builder $query) {
                 if (Auth::user()->isStudent()) {
                     $user = Auth::user();
-                    $query = Task::where('project_id', $user->group->project->id);
-
-                    return $query;
+                    if ($user->group && $user->group->project) {
+                        return $query->where('project_id', $user->group->project->id);
+                    }
+                    return $query->whereNull('project_id'); // Return empty query if no project
                 }
 
-                return Task::all();
+                return $query;
             })
-            ->recordUrl(
-                fn(Model $file): string => FileResource::getUrl('edit', ['record' => $file->id]),
-            )
             ->columns([
-                TextColumn::make('title'),
+                TextColumn::make('title')
+                    ->searchable()
+                    ->sortable(),
                 TextColumn::make('project.title')
                     ->hidden(fn() => Auth::user()->isStudent())
-                    ->label('Project'),
+                    ->label('Project')
+                    ->searchable(),
                 TextColumn::make('description')
-                    ->limit(30),
-                TextColumn::make('file_link'),
+                    ->limit(50)
+                    ->searchable(),
+                TextColumn::make('file_path')
+                    ->label('File')
+                    ->state(function (Model $record) {
+                        if ($record->file_path) {
+                            return basename($record->file_path);
+                        }
+                        return 'No file uploaded';
+                    })
+                    ->badge()
+                    ->color(fn(Model $record) => $record->file_path ? 'success' : 'gray'),
+                TextColumn::make('file_link')
+                    ->label('External Link')
+                    ->state(function (Model $record) {
+                        return $record->file_link ? 'Yes' : 'No';
+                    })
+                    ->badge()
+                    ->color(fn(Model $record) => $record->file_link ? 'info' : 'gray'),
+                TextColumn::make('created_at')
+                    ->label('Uploaded')
+                    ->dateTime()
+                    ->sortable(),
             ])
             ->filters([
-                //
+                Tables\Filters\SelectFilter::make('project_id')
+                    ->label('Project')
+                    ->options(Project::all()->pluck('title', 'id'))
+                    ->hidden(fn() => Auth::user()->isStudent()),
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\ViewAction::make()
+                    ->tooltip('View File Details'),
+                Tables\Actions\EditAction::make()
+                    ->tooltip('Edit File'),
+                Tables\Actions\Action::make('download')
+                    ->label('Download')
+                    ->icon('heroicon-m-arrow-down-tray')
+                    ->color('success')
+                    ->url(fn(Model $record) => $record->file_path ? \Illuminate\Support\Facades\Storage::url($record->file_path) : null)
+                    ->openUrlInNewTab()
+                    ->visible(fn(Model $record) => $record->file_path)
+                    ->tooltip('Download File'),
+                Tables\Actions\Action::make('preview')
+                    ->label('Preview')
+                    ->icon('heroicon-m-eye')
+                    ->color('info')
+                    ->url(fn(Model $record) => $record->file_path ? \Illuminate\Support\Facades\Storage::url($record->file_path) : null)
+                    ->openUrlInNewTab()
+                    ->visible(fn(Model $record) => $record->file_path && in_array(pathinfo($record->file_path, PATHINFO_EXTENSION), ['pdf', 'jpg', 'jpeg', 'png', 'gif']))
+                    ->tooltip('Preview File'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -105,6 +178,7 @@ class FileResource extends Resource
         return [
             'index' => Pages\ListFiles::route('/'),
             'create' => Pages\CreateFile::route('/create'),
+            'view' => Pages\ViewFile::route('/{record}'),
             'edit' => Pages\EditFile::route('/{record}/edit'),
         ];
     }

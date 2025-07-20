@@ -84,7 +84,7 @@ class Project extends Model
             'Respondents of the Study',
             'Statistical Treatment',
             'Bibliography',
-
+            'Final Documentation'
         ];
 
         foreach ($documentationTasks as $documentationTask) {

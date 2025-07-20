@@ -6,8 +6,9 @@ use App\Filament\Resources\ProjectResource\Pages;
 use App\Filament\Resources\ProjectResource\RelationManagers;
 use App\Filament\Resources\ProjectResource\RelationManagers\DevelopmentTasksRelationManager;
 use App\Filament\Resources\ProjectResource\RelationManagers\DocumentationTasksRelationManager;
-
+use App\Filament\Resources\ProjectResource\RelationManagers\FilesRelationManager;
 use App\Models\CriterionGrade;
+use App\Models\File;
 use App\Models\Group;
 use App\Models\GroupRubricEvaluation;
 use App\Models\IndividualRubricEvaluation;
@@ -30,6 +31,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\View;
 use Filament\Forms\Form;
 use Filament\Infolists;
+use Filament\Infolists\Components\TextEntry;
 use Filament\Infolists\Infolist;
 use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
@@ -203,6 +205,7 @@ class ProjectResource extends Resource
         return $infolist
             ->schema([
                 Infolists\Components\Section::make('Project Information')
+                    ->collapsible()
                     ->schema([
                         Infolists\Components\TextEntry::make('title')
                             ->size(Infolists\Components\TextEntry\TextEntrySize::Large)
@@ -368,6 +371,7 @@ class ProjectResource extends Resource
                     ->collapsible(),
 
                 Infolists\Components\Section::make('Grading')
+                    ->collapsible()
                     ->schema([
                         Infolists\Components\TextEntry::make('final_grade')
                             ->badge()
@@ -442,7 +446,8 @@ class ProjectResource extends Resource
     {
         return [
             DocumentationTasksRelationManager::class,
-            DevelopmentTasksRelationManager::class
+            DevelopmentTasksRelationManager::class,
+            FilesRelationManager::class,
         ];
     }
 
@@ -469,7 +474,7 @@ class ProjectResource extends Resource
 
     public static function shouldRegisterNavigation(): bool
     {
-        if (auth()->user()->isStudent()) {
+        if (Auth::user()->isStudent()) {
             return false;
         }
 
