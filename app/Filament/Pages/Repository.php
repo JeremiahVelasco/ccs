@@ -55,24 +55,11 @@ class Repository extends Page implements HasForms, HasTable
                 TextColumn::make('final_grade')
                     ->sortable(),
                 TextColumn::make('awards'),
+                TextColumn::make('group.course')
+                    ->sortable()
+                    ->searchable(),
             ])
             ->filters([
-                SelectFilter::make('course')
-                    ->label('Course')
-                    ->default('BSITWMA')
-                    ->options([
-                        'BSITWMA' => 'BSITWMA',
-                        'BSITAGD' => 'BSITAGD',
-                        'BSITDC' => 'BSITDC',
-                    ])
-                    ->query(function ($query, $data) {
-                        if ($data) {
-                            $query->whereHas('group', function ($q) use ($data) {
-                                $q->where('course', $data);
-                            });
-                        }
-                        return $query;
-                    }),
                 SelectFilter::make('school_year')
                     ->label('School Year')
                     ->default((now()->year - 1) . '-' . now()->year)
