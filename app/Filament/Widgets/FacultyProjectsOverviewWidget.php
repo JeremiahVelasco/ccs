@@ -15,9 +15,7 @@ class FacultyProjectsOverviewWidget extends StatsOverviewWidget
         $user = Auth::user();
 
         // Projects where faculty is an adviser
-        $advisedProjects = Project::whereHas('group', function ($query) use ($user) {
-            $query->where('adviser', $user->id);
-        })->count();
+        $advisedGroups = Group::where('adviser', $user->id)->where('status', 'Active')->count();
 
         // Projects where faculty is a panelist
         $panelistProjects = Project::whereJsonContains('panelists', $user->id)->count();
@@ -29,7 +27,7 @@ class FacultyProjectsOverviewWidget extends StatsOverviewWidget
         $activeProjects = Project::whereIn('status', ['In Progress', 'For Review'])->count();
 
         return [
-            Stat::make('Advised Projects', $advisedProjects)
+            Stat::make('Advised Groups', $advisedGroups)
                 ->description('Groups under your guidance')
                 ->descriptionIcon('heroicon-m-user-group')
                 ->color('success'),
@@ -40,7 +38,7 @@ class FacultyProjectsOverviewWidget extends StatsOverviewWidget
                 ->color('info'),
 
             Stat::make('Active Groups', $activeGroups)
-                ->description('Groups under your guidance')
+                ->description('Groups this school year')
                 ->descriptionIcon('heroicon-m-user-group')
                 ->color('success'),
 
