@@ -68,6 +68,11 @@
                             </p>
                         @endif
                     </div>
+                    <div class="flex justify-end">
+                        <x-filament::button wire:click="refreshCompletionProbability">
+                            Refresh
+                        </x-filament::button>
+                    </div>
                 </div>
             </div>
             <div class="p-6 bg-white rounded-lg shadow dark:bg-gray-800">

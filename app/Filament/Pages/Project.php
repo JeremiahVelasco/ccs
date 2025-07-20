@@ -195,4 +195,15 @@ class Project extends Page
                 ->send();
         }
     }
+
+    public function refreshCompletionProbability()
+    {
+        $this->project->predictCompletion();
+
+        Notification::make()
+            ->title('Success')
+            ->body('Completion probability refreshed successfully!')
+            ->success()
+            ->send();
+    }
 }
