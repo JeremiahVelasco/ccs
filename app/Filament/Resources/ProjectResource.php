@@ -414,8 +414,8 @@ class ProjectResource extends Resource
 
                                                 $memberGrades[] = sprintf(
                                                     '👤 %s: %.2f/5.0
-    📚 Subject Mastery: %.2f | 💬 Q&A: %.2f | 🎤 Delivery: %.2f
-    🗣️ Verbal Skills: %.2f | ✨ Grooming: %.2f',
+                                                    📚 Subject Mastery: %.2f | 💬 Q&A: %.2f | 🎤 Delivery: %.2f
+                                                    🗣️ Verbal Skills: %.2f | ✨ Grooming: %.2f',
                                                     $member->name,
                                                     $overallAverage,
                                                     $criteriaAverages['subject_mastery'],
@@ -465,5 +465,14 @@ class ProjectResource extends Resource
 
         // Only allow users with view_any_project permission to access the Projects page
         return Auth::user()->can('view_any_project');
+    }
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        if (auth()->user()->isStudent()) {
+            return false;
+        }
+
+        return true;
     }
 }
