@@ -106,7 +106,7 @@ class DevelopmentTasks extends Page implements HasForms, HasTable
                 CreateAction::make()
                     ->form([
                         Hidden::make('project_id')
-                            ->default(Auth::user()->group->id ?? null),
+                            ->default(Auth::user()->group->project->id ?? null),
                         TextInput::make('title')
                             ->required()
                             ->maxLength(255),
