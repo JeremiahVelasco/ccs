@@ -62,7 +62,7 @@ class MembersRelationManager extends RelationManager
                     ->label('Add Member')
                     ->form([
                         Select::make('member_id')
-                            ->options(User::query()->role('student')->whereNull('group_id')->pluck('name', 'id'))
+                            ->options(User::query()->role('student')->where('course', $this->getOwnerRecord()->course)->whereNull('group_id')->pluck('name', 'id'))
                             ->searchable()
                             ->preload()
                             ->required()
