@@ -18,7 +18,7 @@ class FacultyProjectsOverviewWidget extends StatsOverviewWidget
         $advisedGroups = Group::where('adviser', $user->id)->where('status', 'Active')->count();
 
         // Projects where faculty is a panelist
-        $panelistProjects = Project::whereJsonContains('panelists', $user->id)->count();
+        $panelistProjects = Project::query()->whereIn('status', ['To-do', 'In Progress', 'For Review'])->whereJsonContains('panelists', (string) $user->id)->count();
 
         // Active Groups
         $activeGroups = Group::where('status', 'Active')->count();
