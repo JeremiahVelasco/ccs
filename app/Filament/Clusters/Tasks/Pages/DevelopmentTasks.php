@@ -124,9 +124,7 @@ class DevelopmentTasks extends Page implements HasForms, HasTable
                     ]),
             ])
             ->bulkActions([
-                BulkActionGroup::make([
-                    DeleteBulkAction::make(),
-                ]),
+                //
             ]);
     }
 
