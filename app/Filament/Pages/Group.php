@@ -5,6 +5,7 @@ namespace App\Filament\Pages;
 use App\Models\Activity;
 use App\Models\Group as GroupModel;
 use App\Models\User;
+use App\Services\GroupService;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
@@ -92,12 +93,12 @@ class Group extends Page
 
     public function getAvailableGroupsProperty()
     {
-        return GroupModel::getAvailableGroups();
+        return GroupService::getAvailableGroups();
     }
 
     public function getMaxGroupSizeProperty()
     {
-        return GroupModel::computeMaxGroupsAndMembers(Auth::user()->course);
+        return GroupService::computeMaxGroupsAndMembers(Auth::user()->course);
     }
 
     public function requestMeeting()

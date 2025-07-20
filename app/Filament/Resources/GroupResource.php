@@ -8,6 +8,7 @@ use App\Filament\Resources\GroupResource\RelationManagers\MembersRelationManager
 use App\Filament\Resources\GroupResource\RelationManagers\ProjectRelationManager;
 use App\Models\Group;
 use App\Models\User;
+use App\Services\GroupService;
 use Filament\Forms;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
@@ -141,8 +142,8 @@ class GroupResource extends Resource
                 TextColumn::make('group_code'),
                 TextColumn::make('members_count')
                     ->label('Members')
-                    ->counts('members'),
-                // ->suffix(fn($record) => ' / ' . Group::computeMaxGroupsAndMembers($record->course)),
+                    ->counts('members')
+                    ->suffix(fn($record) => ' / ' . GroupService::computeMaxGroupsAndMembers($record->course)),
                 TextColumn::make('status')
                     ->badge()
                     ->color(fn($record) => $record->status === 'Active' ? 'success' : 'danger'),
