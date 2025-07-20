@@ -98,7 +98,7 @@ class Group extends Page
 
     public function getMaxGroupSizeProperty()
     {
-        return GroupService::computeMaxGroupsAndMembers(Auth::user()->course);
+        return 5;
     }
 
     public function requestMeeting()
