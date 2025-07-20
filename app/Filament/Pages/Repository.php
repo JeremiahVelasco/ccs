@@ -101,7 +101,7 @@ class Repository extends Page implements HasForms, HasTable
                             ->whereNotNull('file_path')
                             ->first();
 
-                        return $finalDocTask ? route('view.task.file', $finalDocTask->id) : '#';
+                        return $finalDocTask ? url('/view-task-file/' . $finalDocTask->id) : '#';
                     })
                     ->openUrlInNewTab()
                     ->icon('heroicon-m-eye')
