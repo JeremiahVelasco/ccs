@@ -56,6 +56,7 @@ class FacultyAdvisedGroupsWidget extends BaseWidget
             ->actions([
                 //
             ])
+            ->paginated(false)
             ->emptyStateHeading('No groups assigned')
             ->emptyStateDescription('You are not currently advising any groups.')
             ->emptyStateIcon('heroicon-o-user-group');
