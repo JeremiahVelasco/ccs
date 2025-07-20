@@ -41,6 +41,7 @@ class TaskResource extends Resource
                 Select::make('assigned_to')
                     ->options(User::query()->where('group_id', Auth::user()->group_id)->pluck('name', 'id')->toArray()),
                 Select::make('status')
+                    ->disabled(fn() => auth()->user()->isStudent())
                     ->options([
                         'To-do' => 'To-do',
                         'In Progress' => 'In Progress',
@@ -49,6 +50,7 @@ class TaskResource extends Resource
                     ])
                     ->required(),
                 Select::make('is_faculty_approved')
+                    ->disabled(fn() => auth()->user()->isStudent())
                     ->options([
                         1 => 'Yes',
                         0 => 'No',
