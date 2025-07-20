@@ -7,6 +7,7 @@ use App\Models\User;
 use Filament\Forms;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Form;
+use Filament\Notifications\Notification;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
 use Filament\Tables\Columns\ImageColumn;
@@ -57,7 +58,6 @@ class MembersRelationManager extends RelationManager
                 //
             ])
             ->headerActions([
-                // Tables\Actions\CreateAction::make(),
                 Tables\Actions\Action::make('add_member')
                     ->label('Add Member')
                     ->form([
@@ -84,6 +84,15 @@ class MembersRelationManager extends RelationManager
                             ->columnSpanFull(),
                     ])
                     ->action(function (array $data) {
+                        if ($this->getOwnerRecord()->members->count() >= $this->getOwnerRecord()->max_group_size) {
+                            Notification::make()
+                                ->title('Maximum group size reached')
+                                ->body('The group has reached the maximum number of members.')
+                                ->danger()
+                                ->send();
+                            return;
+                        }
+
                         $user = User::find($data['member_id']);
                         $user->group_id = $this->getOwnerRecord()->id;
                         $user->group_role = $data['group_role'];
