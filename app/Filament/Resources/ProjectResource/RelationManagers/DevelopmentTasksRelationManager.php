@@ -52,12 +52,12 @@ class DevelopmentTasksRelationManager extends RelationManager
             ->actions([
                 Action::make('Approve')
                     ->icon('heroicon-m-check-badge')
-                    ->visible(fn(Model $task) => $task->status !== 'Approved' && $task->status !== 'To-do' && $task->status !== 'In Progress')
+                    ->visible(fn(Model $task) => $task->status !== 'Approved' && $task->status !== 'To-do' && $task->status !== 'In Progress' && !auth()->user()->isStudent())
                     ->requiresConfirmation()
                     ->modalDescription('Are you sure you\'d like to Approve this task?')
                     ->action(fn(Model $task) => $task->markAsDone()),
                 Action::make('Disapprove')
-                    ->visible(fn(Model $task) => $task->status === 'Approved')
+                    ->visible(fn(Model $task) => $task->status === 'Approved' && !auth()->user()->isStudent())
                     ->icon('heroicon-m-backward')
                     ->color('danger')
                     ->requiresConfirmation()
