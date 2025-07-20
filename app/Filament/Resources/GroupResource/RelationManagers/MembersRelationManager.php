@@ -84,7 +84,7 @@ class MembersRelationManager extends RelationManager
                             ->columnSpanFull(),
                     ])
                     ->action(function (array $data) {
-                        if ($this->getOwnerRecord()->members->count() >= $this->getOwnerRecord()->getMaxGroupSize()) {
+                        if ($this->getOwnerRecord()->members->count() >= 5) {
                             Notification::make()
                                 ->title('Maximum group size reached')
                                 ->body('The group has reached the maximum number of members.')
