@@ -115,7 +115,8 @@ class User extends Authenticatable implements FilamentUser, HasAvatar
 
     public function isLeader()
     {
-        return $this->group_role === 'leader';
+        $group = $this->group;
+        return $group && $group->leader_id === $this->id;
     }
 
     public static function scopeStudents($query)
