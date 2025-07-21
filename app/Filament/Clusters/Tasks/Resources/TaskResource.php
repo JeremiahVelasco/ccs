@@ -68,6 +68,7 @@ class TaskResource extends Resource
                     ->disk('public')
                     ->directory('task-files')
                     ->visibility('public')
+                    ->openable()
                     ->previewable()
                     ->downloadable()
             ]);
