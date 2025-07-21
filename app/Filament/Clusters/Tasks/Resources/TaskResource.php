@@ -20,6 +20,7 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class TaskResource extends Resource
 {
@@ -64,12 +65,11 @@ class TaskResource extends Resource
                 FileUpload::make('file_path')
                     ->label('File')
                     ->columnSpanFull()
-                    ->disk('public')
-                    // ->directory('task-files')
-                    // ->visibility('public')
+                    // ->disk('public')
+                    ->directory('task-files')
+                    ->visibility('public')
                     ->previewable()
-                    ->openable()
-                    ->downloadable(),
+                    ->downloadable()
             ]);
     }
 
