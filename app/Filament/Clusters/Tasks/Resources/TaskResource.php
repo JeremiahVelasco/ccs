@@ -65,7 +65,7 @@ class TaskResource extends Resource
                 FileUpload::make('file_path')
                     ->label('File')
                     ->columnSpanFull()
-                    // ->disk('public')
+                    ->disk('public')
                     ->directory('task-files')
                     ->visibility('public')
                     ->previewable()
